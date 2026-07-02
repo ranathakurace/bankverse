@@ -1,14 +1,19 @@
 package com.bank.api.dto;
 
+import java.math.BigDecimal;
+
 public class TransferResponse {
 
     private String status;
     private String message;
-    private double fromBalance;
-    private double toBalance;
+    private BigDecimal fromBalance;
+    private BigDecimal toBalance;
 
-    public TransferResponse(String status, String message,
-                            double fromBalance, double toBalance) {
+    public TransferResponse(
+            String status,
+            String message,
+            BigDecimal fromBalance,
+            BigDecimal toBalance) {
         this.status = status;
         this.message = message;
         this.fromBalance = fromBalance;
@@ -23,11 +28,12 @@ public class TransferResponse {
         return message;
     }
 
-    public double getFromBalance() {
+    public BigDecimal getFromBalance() {
         return fromBalance;
     }
 
-    public double getToBalance() {
+    public BigDecimal getToBalance() {
         return toBalance;
     }
+    
 }

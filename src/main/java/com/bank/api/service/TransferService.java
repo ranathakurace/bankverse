@@ -5,7 +5,11 @@ import com.bank.api.exception.AccountNotFoundException;
 import com.bank.api.exception.TransferFailedException;
 import com.bank.api.idempotency.IdempotencyStore;
 import com.bank.api.model.Account;
+import com.bank.api.model.AccountStatus;
 import com.bank.api.repository.AccountRepository;
+
+import java.math.BigDecimal;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -47,22 +51,24 @@ public class TransferService {
             throw new TransferFailedException("Cannot transfer to same account");
         }
 
-        if (!"ACTIVE".equalsIgnoreCase(from.getStatus())) {
+        if (from.getAccountStatus() != AccountStatus.ACTIVE) {
             throw new TransferFailedException("Source account is not active");
         }
 
-        if (from.getBalance() < request.getAmount()) {
+        if (from.getBalance().compareTo(BigDecimal.valueOf(request.getAmount())) < 0) {
             throw new TransferFailedException("Insufficient balance");
         }
 
         // 4️⃣ Take snapshot for rollback
-        double originalFromBalance = from.getBalance();
-        double originalToBalance = to.getBalance();
+        BigDecimal originalFromBalance = from.getBalance();
+        BigDecimal originalToBalance = to.getBalance();
 
         try {
 
             // 5 Debit source account
-            from.setBalance(originalFromBalance - request.getAmount());
+        	from.setBalance(
+        		    originalFromBalance.subtract(BigDecimal.valueOf(request.getAmount()))
+        		);
 
             repository.save(from);
 
@@ -72,7 +78,9 @@ public class TransferService {
             // }
 
             // 6️⃣ Credit destination account
-            to.setBalance(originalToBalance + request.getAmount());
+            to.setBalance(
+            	    originalToBalance.add(BigDecimal.valueOf(request.getAmount()))
+            	);
 
             repository.save(to);
 

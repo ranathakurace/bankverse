@@ -1,14 +1,16 @@
 package com.bank.api.dto;
 
+import java.math.BigDecimal;
+
 public class AccountResponse {
 
 	private Long accountId;
-    private double balance;
+	private BigDecimal balance;
     private String currency;
     private String status;
 
     public AccountResponse(Long accountId,
-            double balance,
+            BigDecimal balance,
             String currency,
             String status) {
         this.accountId = accountId;
@@ -21,7 +23,7 @@ public class AccountResponse {
         return accountId;
     }
 
-    public double getBalance() {
+    public BigDecimal getBalance() {
         return balance;
     }
 

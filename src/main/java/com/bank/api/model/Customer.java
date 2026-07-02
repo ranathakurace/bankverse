@@ -4,10 +4,12 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import javax.persistence.CascadeType;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
+import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
@@ -52,8 +54,10 @@ public class Customer {
 
     private Integer riskScore;
     
-    @OneToMany(mappedBy = "customer")
-    private List<Account> accounts;
+    @OneToMany(mappedBy = "customer",
+            cascade = CascadeType.ALL,
+            fetch = FetchType.LAZY)
+ private List<Account> accounts;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

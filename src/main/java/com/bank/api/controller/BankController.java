@@ -54,7 +54,7 @@ public class BankController {
                 account.getId(),
                 account.getBalance(),
                 account.getCurrency(),
-                account.getStatus()
+                account.getAccountStatus().name()
         );
     }
 
