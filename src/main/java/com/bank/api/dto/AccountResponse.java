@@ -2,27 +2,34 @@ package com.bank.api.dto;
 
 import java.math.BigDecimal;
 
+import com.bank.api.model.AccountStatus;
+import com.bank.api.model.AccountType;
+
 public class AccountResponse {
 
-	private Long accountId;
+	private String accountNumber;
+	private String customerNumber;
+	private AccountType accountType;
 	private BigDecimal balance;
-    private String currency;
-    private String status;
-
-    public AccountResponse(Long accountId,
+	private String currency;
+	private AccountStatus accountStatus;
+	
+	public AccountResponse(String accountNumber,
+            String customerNumber,
+            AccountType accountType,
             BigDecimal balance,
             String currency,
-            String status) {
-        this.accountId = accountId;
-        this.balance = balance;
-        this.currency = currency;
-        this.status = status;
-    }
+            AccountStatus accountStatus) {
 
-    public Long getAccountId() {
-        return accountId;
-    }
+		this.accountNumber = accountNumber;
+		this.customerNumber = customerNumber;
+		this.accountType = accountType;
+		this.balance = balance;
+		this.currency = currency;
+		this.accountStatus = accountStatus;
+		}
 
+   
     public BigDecimal getBalance() {
         return balance;
     }
@@ -31,7 +38,5 @@ public class AccountResponse {
         return currency;
     }
 
-    public String getStatus() {
-        return status;
-    }
+    
 }

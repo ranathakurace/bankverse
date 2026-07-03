@@ -41,6 +41,10 @@ public class SecurityConfig {
                     HttpMethod.GET,
                     "/api/v1/customers/**"
             ).permitAll()
+            .antMatchers(
+                    HttpMethod.POST,
+                    "/bank/account"
+            ).permitAll()
                 .anyRequest().authenticated()
             .and()
 

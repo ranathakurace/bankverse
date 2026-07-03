@@ -1,15 +1,21 @@
 package com.bank.api.controller;
 
 import com.bank.api.client.FraudClient;
+import com.bank.api.dto.AccountRequest;
 import com.bank.api.dto.AccountResponse;
 import com.bank.api.dto.FraudResponse;
 import com.bank.api.model.Account;
 import com.bank.api.service.AccountService;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.constraints.Min;
@@ -51,10 +57,12 @@ public class BankController {
         Account account = accountService.getAccount(accountId);
 
         return new AccountResponse(
-                account.getId(),
+                account.getAccountNumber(),
+                account.getCustomer().getCustomerNumber(),
+                account.getAccountType(),
                 account.getBalance(),
                 account.getCurrency(),
-                account.getAccountStatus().name()
+                account.getAccountStatus()
         );
     }
 
@@ -71,5 +79,23 @@ public class BankController {
 
     	accountService.deleteAccount((long) accountId);
     	return "Account deleted successfully";
+    }
+    
+    /**
+     * ==========================================================
+     * Story-003
+     * Create Bank Account
+     * ==========================================================
+     */
+    @PostMapping("/bank/account")
+    public ResponseEntity<AccountResponse> createAccount(
+            @RequestBody AccountRequest request) {
+
+        AccountResponse response =
+                accountService.createAccount(request);
+
+        return ResponseEntity
+                .status(HttpStatus.CREATED)
+                .body(response);
     }
 }
