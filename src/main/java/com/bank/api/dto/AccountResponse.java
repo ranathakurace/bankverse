@@ -29,7 +29,21 @@ public class AccountResponse {
 		this.accountStatus = accountStatus;
 		}
 
-   
+	public String getAccountNumber() {
+	    return accountNumber;
+	}
+
+	public String getCustomerNumber() {
+	    return customerNumber;
+	}
+
+	public AccountType getAccountType() {
+	    return accountType;
+	}
+
+	public AccountStatus getAccountStatus() {
+	    return accountStatus;
+	}
     public BigDecimal getBalance() {
         return balance;
     }

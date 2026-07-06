@@ -234,18 +234,8 @@ public class CustomerService {
          * =========================================================
          */
 
-    	CustomerResponse response = new CustomerResponse();
-
-    	response.setCustomerNumber(savedCustomer.getCustomerNumber());
-
-    	response.setFullName(savedCustomer.getFullName());
-
-    	response.setCustomerStatus(savedCustomer.getCustomerStatus().name());
-
-    	response.setKycStatus(savedCustomer.getKycStatus());
-
+    	CustomerResponse response = mapToCustomerResponse(savedCustomer);
     	response.setMessage("Customer registered successfully.");
-
     	return response;
     }
     public CustomerResponse getCustomerByCustomerNumber(String customerNumber) {
@@ -257,14 +247,7 @@ public class CustomerService {
                         "customer number",
                         customerNumber));
 
-        CustomerResponse response = new CustomerResponse();
-
-        response.setCustomerNumber(customer.getCustomerNumber());
-        response.setFullName(customer.getFullName());
-        response.setCustomerStatus(customer.getCustomerStatus().name());
-        response.setKycStatus(customer.getKycStatus());
-
-        return response;
+        return mapToCustomerResponse(customer);
     }
     /**
      * ==========================================================
@@ -290,14 +273,7 @@ public class CustomerService {
                         normalizedPan));
 
         // Map Entity to DTO
-        CustomerResponse response = new CustomerResponse();
-
-        response.setCustomerNumber(customer.getCustomerNumber());
-        response.setFullName(customer.getFullName());
-        response.setCustomerStatus(customer.getCustomerStatus().name());
-        response.setKycStatus(customer.getKycStatus());
-
-        return response;
+        return mapToCustomerResponse(customer);
     }
     /**
      * ==========================================================
@@ -323,14 +299,7 @@ public class CustomerService {
                         normalizedEmail));
 
         // Map Entity to DTO
-        CustomerResponse response = new CustomerResponse();
-
-        response.setCustomerNumber(customer.getCustomerNumber());
-        response.setFullName(customer.getFullName());
-        response.setCustomerStatus(customer.getCustomerStatus().name());
-        response.setKycStatus(customer.getKycStatus());
-
-        return response;
+        return mapToCustomerResponse(customer);
     }
     /**
      * ==========================================================
