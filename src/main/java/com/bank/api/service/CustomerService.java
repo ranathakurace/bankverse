@@ -238,6 +238,51 @@ public class CustomerService {
     	response.setMessage("Customer registered successfully.");
     	return response;
     }
+    /**
+     * ==========================================================
+     * Customer Activation Workflow
+     * ==========================================================
+     */
+    public CustomerResponse activateCustomer(
+            String customerNumber,
+            String comments) {
+
+        Customer customer = findCustomerByNumber(customerNumber);
+        validateCustomerForActivation(customer);
+        activateCustomerStatus(customer);
+        Customer savedCustomer = saveCustomer(customer);
+        createAuditLog(savedCustomer, comments);
+        sendActivationNotification(savedCustomer);
+        return buildActivationResponse(savedCustomer);
+    }
+    /**
+     * ==========================================================
+     * Retrieve Customer by Customer Number
+     * ==========================================================
+     *
+     * Business Purpose:
+     * Retrieve the customer from the database before performing
+     * any banking business operation.
+     *
+     * Throws:
+     * CustomerNotFoundException if customer does not exist.
+     *
+     * Used By:
+     * Customer Activation
+     * Future Account Opening
+     * Future Fund Transfer
+     * Future Loan Processing
+     * ==========================================================
+     */
+    private Customer findCustomerByNumber(String customerNumber) {
+
+        return customerRepository
+                .findByCustomerNumber(customerNumber)
+                .orElseThrow(() ->
+                        new CustomerNotFoundException(
+                                "Customer Number",
+                                customerNumber));
+    }
     public CustomerResponse getCustomerByCustomerNumber(String customerNumber) {
 
         Customer customer = customerRepository
@@ -248,6 +293,129 @@ public class CustomerService {
                         customerNumber));
 
         return mapToCustomerResponse(customer);
+    }
+    /**
+     * ==========================================================
+     * Validate Customer for Activation
+     * ==========================================================
+     *
+     * Business Purpose:
+     * Ensure the customer satisfies all business rules before
+     * activation is allowed.
+     *
+     * Current Version 1 Rules:
+     * - Customer must be in PENDING_KYC status
+     * - KYC must be COMPLETED
+     *
+     * Future Enhancements:
+     * - AI Compliance Advisor
+     * - AML Validation
+     * - Fraud Detection
+     * - Manager Approval
+     * ==========================================================
+     */
+    private void validateCustomerForActivation(Customer customer) {
+
+        // Implementation will be added next.
+    }
+    /**
+     * ==========================================================
+     * Activate Customer
+     * ==========================================================
+     *
+     * Business Purpose:
+     * Update the customer status from PENDING_KYC to ACTIVE
+     * after all banking business rules have been validated.
+     *
+     * Business Rules:
+     * - Customer validation must already be completed.
+     * - Status changes only from PENDING_KYC to ACTIVE.
+     *
+     * Parameters:
+     * customer - Customer entity to activate.
+     *
+     * Returns:
+     * None
+     *
+     * Future Enhancements:
+     * - Activation Date
+     * - Activated By Employee
+     * - AI Recommendation Score
+     * ==========================================================
+     */
+    private void activateCustomerStatus(Customer customer) {
+
+        customer.setCustomerStatus(CustomerStatus.ACTIVE);
+
+        customer.setUpdatedAt(LocalDateTime.now());
+
+    }
+    /**
+     * ==========================================================
+     * Build Customer Activation Response
+     * ==========================================================
+     *
+     * Business Purpose:
+     * Build the API response returned to the bank employee after
+     * successful customer activation.
+     *
+     * Business Rules:
+     * - Customer Status must be ACTIVE.
+     * - Customer Number must be returned.
+     * - Success message must be included.
+     *
+     * Parameters:
+     * customer - Activated customer.
+     *
+     * Returns:
+     * CustomerResponse
+     *
+     * Version 1 Scope:
+     * - Customer Number
+     * - Customer Status
+     * - Success Message
+     *
+     * Version 2 Scope:
+     * - Activation Date
+     * - Activated By
+     * - AI Recommendation
+     * ==========================================================
+     */
+    private CustomerResponse buildActivationResponse(Customer customer) {
+
+        CustomerResponse response = mapToCustomerResponse(customer);
+
+        response.setMessage("Customer activated successfully.");
+
+        return response;
+    }
+    /**
+     * ==========================================================
+     * Create Audit Log
+     * ==========================================================
+     *
+     * Version 1
+     * Placeholder
+     *
+     * Future Story:
+     * BV-00XX Audit Service
+     * ==========================================================
+     */
+    private void createAuditLog(Customer customer,
+                                String comments) {
+
+        // Placeholder
+    }
+    /**
+     * Send customer activation notification.
+     *
+     * Reference:
+     * BV-003A Customer Activation
+     */
+    private void sendActivationNotification(Customer customer) {
+
+        // Version 1 Placeholder
+        // Future Story: Notification Service
     }
     /**
      * ==========================================================
@@ -343,5 +511,5 @@ public class CustomerService {
 
         return response;
     }
-    
+   
 }
