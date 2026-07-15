@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.regex.Pattern;
 import com.bank.api.util.ValidationUtil;
+import com.bank.api.dto.ActivateCustomerRequest;
 import com.bank.api.dto.CustomerRequest;
 import com.bank.api.dto.CustomerResponse;
 import com.bank.api.exception.CustomerAlreadyExistsException;
@@ -245,13 +246,13 @@ public class CustomerService {
      */
     public CustomerResponse activateCustomer(
             String customerNumber,
-            String comments) {
+            ActivateCustomerRequest request) {
 
         Customer customer = findCustomerByNumber(customerNumber);
         validateCustomerForActivation(customer);
         activateCustomerStatus(customer);
         Customer savedCustomer = saveCustomer(customer);
-        createAuditLog(savedCustomer, comments);
+        createAuditLog(savedCustomer, request.getComments());
         sendActivationNotification(savedCustomer);
         return buildActivationResponse(savedCustomer);
     }
