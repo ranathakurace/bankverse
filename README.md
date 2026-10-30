@@ -63,7 +63,7 @@ Endpoint-level request formats and sample payloads are available in the Operatio
 ## Technology
 
 - Java 17 baseline for the application, CI, and automation suites.
-- Spring Boot 2.7.18, Spring Security, Spring Data JPA, Hibernate, Maven.
+- Spring Boot 4.1.2, Spring Security, Spring Data JPA, Hibernate, Maven.
 - PostgreSQL for local runtime; isolated H2 configuration for tests.
 - JavaScript/CSS static web UI served by Spring Boot.
 - TestNG, Playwright Java, Selenium, Rest Assured, JaCoCo, OWASP Dependency-Check, GitHub Actions, and Jenkins/Docker assets.

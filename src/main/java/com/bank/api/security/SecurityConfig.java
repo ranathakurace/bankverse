@@ -14,8 +14,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.web.header.writers.DelegatingRequestMatcherHeaderWriter;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter;
 import org.springframework.security.web.header.writers.frameoptions.XFrameOptionsHeaderWriter.XFrameOptionsMode;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 
 @Configuration
 @EnableMethodSecurity
@@ -95,7 +95,8 @@ public class SecurityConfig {
             .addFilterBefore(jwtFilter(), UsernamePasswordAuthenticationFilter.class);
 
         // Only the embedded training document may be framed by this application's own origin.
-        AntPathRequestMatcher automationFrame = new AntPathRequestMatcher("/automation-frame.html");
+        PathPatternRequestMatcher automationFrame = PathPatternRequestMatcher.withDefaults()
+            .matcher("/automation-frame.html");
         http.headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable())
             .addHeaderWriter(new DelegatingRequestMatcherHeaderWriter(automationFrame,
                 new XFrameOptionsHeaderWriter(XFrameOptionsMode.SAMEORIGIN)))
