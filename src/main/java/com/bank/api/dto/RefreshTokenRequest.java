@@ -1,6 +1,6 @@
 package com.bank.api.dto;
 
-import javax.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 
 /** Payload accepted by the access-token refresh endpoint. */

@@ -62,7 +62,7 @@ Endpoint-level request formats and sample payloads are available in the Operatio
 
 ## Technology
 
-- Java 11 application baseline; CI and automation use JDK 17.
+- Java 17 baseline for the application, CI, and automation suites.
 - Spring Boot 2.7.18, Spring Security, Spring Data JPA, Hibernate, Maven.
 - PostgreSQL for local runtime; isolated H2 configuration for tests.
 - JavaScript/CSS static web UI served by Spring Boot.
