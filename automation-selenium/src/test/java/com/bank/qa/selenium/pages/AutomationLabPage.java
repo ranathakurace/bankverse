@@ -9,7 +9,7 @@ public final class AutomationLabPage {
   public AutomationLabPage(WebDriver driver,WebDriverWait wait){this.driver=driver;this.wait=wait;}
   private By id(String value){return By.cssSelector("[data-testid='"+value+"']");}
   public void setRisk(String risk){new Select(driver.findElement(id("automation-risk-tier"))).selectByValue(risk);}
-  public String risk(){return new Select(driver.findElement(id("automation-risk-tier"))).getFirstSelectedOption().getAttribute("value");}
+  public String risk(){return new Select(driver.findElement(id("automation-risk-tier"))).getFirstSelectedOption().getDomAttribute("value");}
   public void selectEntitlements(String... values){var select=new Select(driver.findElement(id("automation-entitlements")));select.deselectAll();for(String value:values)select.selectByValue(value);}
   public int selectedEntitlements(){return new Select(driver.findElement(id("automation-entitlements"))).getAllSelectedOptions().size();}
   public void chooseChecker(){driver.findElement(id("automation-route-checker")).click();}
