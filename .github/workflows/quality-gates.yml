@@ -70,7 +70,13 @@ jobs:
       - name: Scan dependencies
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
-        run: mvn --batch-mode verify -Psecurity -DskipTests
+        run: |
+          if mvn --batch-mode verify -Psecurity -DskipTests; then
+            exit 0
+          fi
+          echo "::warning::The live NVD API failed. Retrying with OWASP's published NVD data-feed mirror."
+          mvn --batch-mode verify -Psecurity -DskipTests \
+            -DnvdDatafeedUrl='https://dependency-check.github.io/DependencyCheck_Builder/nvd_cache/nvdcve-{0}.json.gz'
       - name: Save OWASP vulnerability data
         if: success()
         uses: actions/cache/save@v5
