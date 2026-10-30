@@ -222,6 +222,8 @@
                             <failBuildOnCVSS>${owasp.fail.cvss}</failBuildOnCVSS>
                             <!-- Read the CI secret directly from the environment; never expose it in Maven output. -->
                             <nvdApiKeyEnvironmentVariable>NVD_API_KEY</nvdApiKeyEnvironmentVariable>
+                            <!-- Switch to the CI fallback promptly when NVD is unavailable. -->
+                            <nvdMaxRetryCount>5</nvdMaxRetryCount>
                             <formats><format>HTML</format><format>JSON</format></formats>
                             <suppressionFiles>
                                 <suppressionFile>${project.basedir}/config/owasp-suppressions.xml</suppressionFile>
