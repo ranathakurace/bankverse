@@ -14,8 +14,8 @@ jobs:
     name: Build, test, coverage and static analysis
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
@@ -40,13 +40,22 @@ jobs:
   dependency-security:
     name: OWASP dependency vulnerability scan
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
           cache: maven
+      - name: Verify NVD API key is configured
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: |
+          if [ -z "$NVD_API_KEY" ]; then
+            echo "::error::Repository secret NVD_API_KEY is required for the OWASP scan. Request one from https://nvd.nist.gov/developers/request-an-api-key and add it in Settings > Secrets and variables > Actions."
+            exit 1
+          fi
       - name: Scan dependencies
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}

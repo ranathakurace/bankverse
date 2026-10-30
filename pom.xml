@@ -216,10 +216,12 @@
                     <plugin>
                         <groupId>org.owasp</groupId>
                         <artifactId>dependency-check-maven</artifactId>
-                        <version>10.0.4</version>
+                        <!-- 12.2.2 widens the NVD reference URL column for current CVE data. -->
+                        <version>12.2.2</version>
                         <configuration>
                             <failBuildOnCVSS>${owasp.fail.cvss}</failBuildOnCVSS>
-                            <nvdApiKey>${env.NVD_API_KEY}</nvdApiKey>
+                            <!-- Read the CI secret directly from the environment; never expose it in Maven output. -->
+                            <nvdApiKeyEnvironmentVariable>NVD_API_KEY</nvdApiKeyEnvironmentVariable>
                             <formats><format>HTML</format><format>JSON</format></formats>
                             <suppressionFiles>
                                 <suppressionFile>${project.basedir}/config/owasp-suppressions.xml</suppressionFile>
