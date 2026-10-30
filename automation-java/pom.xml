@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>com.bank.qa</groupId><artifactId>bankverse-playwright-java</artifactId><version>1.0.0-SNAPSHOT</version>
+  <name>BankVerse Playwright Java UI and API</name>
+  <properties>
+    <maven.compiler.release>17</maven.compiler.release><project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <playwright.version>1.63.0</playwright.version><testng.version>7.9.0</testng.version>
+    <browser>chromium</browser><resultsLabel>${browser}</resultsLabel><headless>true</headless><threads>2</threads>
+    <groups>api,ui</groups><excludedGroups>exercise</excludedGroups>
+  </properties>
+  <dependencies>
+    <dependency><groupId>com.microsoft.playwright</groupId><artifactId>playwright</artifactId><version>${playwright.version}</version><scope>test</scope></dependency>
+    <dependency><groupId>org.testng</groupId><artifactId>testng</artifactId><version>${testng.version}</version><scope>test</scope></dependency>
+    <dependency><groupId>com.google.code.gson</groupId><artifactId>gson</artifactId><version>2.12.1</version><scope>test</scope></dependency>
+  </dependencies>
+  <build><plugins>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.13.0</version></plugin>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><version>3.5.2</version>
+      <configuration>
+        <groups>${groups}</groups><excludedGroups>${excludedGroups}</excludedGroups>
+        <parallel>classes</parallel><threadCount>${threads}</threadCount>
+        <failIfNoTests>true</failIfNoTests><testFailureIgnore>false</testFailureIgnore>
+        <reportsDirectory>${project.build.directory}/surefire-reports/${resultsLabel}</reportsDirectory>
+        <systemPropertyVariables><browser>${browser}</browser><headless>${headless}</headless></systemPropertyVariables>
+        <properties><property><name>listener</name><value>com.bank.qa.core.WriteGuard</value></property></properties>
+      </configuration>
+    </plugin>
+    <plugin><groupId>org.codehaus.mojo</groupId><artifactId>exec-maven-plugin</artifactId><version>3.5.0</version><configuration><classpathScope>test</classpathScope></configuration></plugin>
+  </plugins></build>
+  <profiles>
+    <profile><id>api</id><properties><groups>api</groups></properties></profile>
+    <profile><id>ui</id><properties><groups>ui</groups></properties></profile>
+    <profile><id>smoke</id><properties><groups>smoke</groups></properties></profile>
+    <profile><id>edge</id><properties><groups>edge</groups></properties></profile>
+  </profiles>
+</project>

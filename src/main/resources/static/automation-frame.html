@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>BankVerse Frame Exercise</title>
+  <style>body{font-family:Arial,sans-serif;margin:0;padding:18px;background:#f8fafc;color:#0f2d56}label{display:block;margin:12px 0;font-weight:600}input,select,button{margin-top:5px;padding:8px;width:100%;box-sizing:border-box}button{background:#155e75;color:#fff;border:0;border-radius:4px;font-weight:700;cursor:pointer}#frame-alert{padding:10px;background:#e0f2fe;border-left:4px solid #0284c7}</style>
+</head>
+<body>
+  <h2>Verification frame</h2>
+  <p>Use your framework's frame-switching command before locating these controls.</p>
+  <label>Verification method<select id="frame-verification-method" data-testid="frame-verification-method"><option>OTP</option><option>Knowledge check</option><option>Document review</option></select></label>
+  <label>Reference<input id="frame-reference" data-testid="frame-reference" placeholder="VER-000001"></label>
+  <label><input id="frame-consent" data-testid="frame-consent" type="checkbox"> I confirm this is training data</label>
+  <button id="frame-verify" data-testid="frame-verify" type="button">Verify in frame</button>
+  <p id="frame-alert" data-testid="frame-alert" role="status" aria-live="polite">Frame ready.</p>
+  <script>document.getElementById('frame-verify').addEventListener('click',function(){document.getElementById('frame-alert').textContent='Frame verification completed for automation practice.';});</script>
+</body>
+</html>

@@ -1,0 +1,18 @@
+flowchart TD
+  A[CLI or IDE or GitHub Actions] --> B[Maven Surefire and TestNG]
+  C[Validated RunConfig] --> B
+  B --> D[Suite app readiness and authentication]
+  D --> E[Per test ThreadLocal TestSession]
+  E --> U[UI Page Objects]
+  E --> P[API Domain Clients]
+  F[CustomerData and OnboardingFlow] --> U
+  F --> P
+  U --> G[BrowserContext Page Locator]
+  P --> H[APIRequestContext HTTP]
+  G --> I[BankVerse UI and REST application]
+  H --> I
+  I --> J[Security Controller Service Repository]
+  J --> K[Managed H2 or external QA PostgreSQL]
+  I --> L[Business and contract assertions]
+  L --> M[Surefire TestNG HTML and XML]
+  L --> N[Failed UI screenshot and trace]

@@ -1,0 +1,15 @@
+pipeline {
+  agent { label 'ui-chrome' }
+  options { disableConcurrentBuilds(); timeout(time: 25, unit: 'MINUTES'); buildDiscarder(logRotator(numToKeepStr: '20')) }
+  environment { START_APP = 'true'; TEST_PORT = '18081'; UI_BROWSER = 'chrome'; HEADLESS = 'true' }
+  stages {
+    stage('Preflight') { steps { bat 'java -version'; bat 'mvn -version' } }
+    stage('Selenium smoke') { steps { bat 'mvn -B -ntp clean test -Psmoke' } }
+  }
+  post {
+    always {
+      junit allowEmptyResults: true, testResults: 'target/surefire-reports/*.xml'
+      archiveArtifacts allowEmptyArchive: true, artifacts: 'target/artifacts/**,target/application.log,target/surefire-reports/**'
+    }
+  }
+}

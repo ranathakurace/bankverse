@@ -4,7 +4,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.regex.Pattern;
 import com.bank.api.util.ValidationUtil;
@@ -21,8 +20,14 @@ import com.bank.api.repository.CustomerRepository;
 @Service
 public class CustomerService {
 
-    @Autowired
-    private CustomerRepository customerRepository;
+    private static final String CUSTOMER_NUMBER_REGEX = "^CUST\\d{6}$";
+    private static final String KYC_STATUS_COMPLETED = "COMPLETED";
+
+    private final CustomerRepository customerRepository;
+
+    public CustomerService(CustomerRepository customerRepository) {
+        this.customerRepository = customerRepository;
+    }
 
     private Customer saveCustomer(Customer customer) {
         return customerRepository.save(customer);
@@ -248,13 +253,32 @@ public class CustomerService {
             String customerNumber,
             ActivateCustomerRequest request) {
 
-        Customer customer = findCustomerByNumber(customerNumber);
+        String normalizedCustomerNumber = validateAndNormalizeCustomerNumber(customerNumber);
+        Customer customer = findCustomerByNumber(normalizedCustomerNumber);
         validateCustomerForActivation(customer);
         activateCustomerStatus(customer);
         Customer savedCustomer = saveCustomer(customer);
-        createAuditLog(savedCustomer, request.getComments());
+        createAuditLog(savedCustomer, request == null ? null : request.getComments());
         sendActivationNotification(savedCustomer);
         return buildActivationResponse(savedCustomer);
+    }
+
+    /**
+     * Validates the customer identifier before an activation lookup is made.
+     */
+    private String validateAndNormalizeCustomerNumber(String customerNumber) {
+
+        if (customerNumber == null || customerNumber.trim().isEmpty()) {
+            throw new InvalidCustomerException("Customer Number is mandatory.");
+        }
+
+        String normalizedCustomerNumber = customerNumber.trim().toUpperCase();
+
+        if (!normalizedCustomerNumber.matches(CUSTOMER_NUMBER_REGEX)) {
+            throw new InvalidCustomerException("Invalid Customer Number format.");
+        }
+
+        return normalizedCustomerNumber;
     }
     /**
      * ==========================================================
@@ -317,7 +341,20 @@ public class CustomerService {
      */
     private void validateCustomerForActivation(Customer customer) {
 
-        // Implementation will be added next.
+        if (customer.getCustomerStatus() == CustomerStatus.ACTIVE) {
+            throw new InvalidCustomerException("Customer is already active.");
+        }
+
+        if (customer.getCustomerStatus() != CustomerStatus.PENDING_KYC) {
+            throw new InvalidCustomerException(
+                    "Customer must be in PENDING_KYC status before activation.");
+        }
+
+        if (customer.getKycStatus() == null
+                || !KYC_STATUS_COMPLETED.equalsIgnoreCase(customer.getKycStatus().trim())) {
+            throw new InvalidCustomerException(
+                    "Customer KYC must be COMPLETED before activation.");
+        }
     }
     /**
      * ==========================================================

@@ -12,8 +12,24 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class JwtFilter extends OncePerRequestFilter {
+    private final JwtUtil jwtUtil;
+
+    public JwtFilter(JwtUtil jwtUtil) {
+        this.jwtUtil = jwtUtil;
+    }
+
+    /** Authentication endpoints must remain usable when a browser has an expired session token. */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        return path.startsWith("/auth/bootstrap") || path.equals("/auth/login") || path.equals("/auth/refresh")
+                || path.equals("/customer-auth/enroll") || path.equals("/customer-auth/login");
+    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -30,21 +46,26 @@ public class JwtFilter extends OncePerRequestFilter {
 
             try {
                 // Validate token
-                Claims claims = JwtUtil.validateToken(token);
+                Claims claims = jwtUtil.validateToken(token);
 
                 String username = claims.getSubject();
-                String role = claims.get("role", String.class);
-
-                // Create authority from role
-                SimpleGrantedAuthority authority =
-                        new SimpleGrantedAuthority(role);
+                Object rolesClaim = claims.get("roles");
+                List<SimpleGrantedAuthority> authorities;
+                if (rolesClaim instanceof Collection<?>) {
+                    authorities = ((Collection<?>) rolesClaim).stream()
+                            .map(String::valueOf).map(SimpleGrantedAuthority::new)
+                            .collect(Collectors.toList());
+                } else {
+                    String role = claims.get("role", String.class);
+                    authorities = Collections.singletonList(new SimpleGrantedAuthority(role));
+                }
 
                 // Create authentication object
                 UsernamePasswordAuthenticationToken authentication =
                         new UsernamePasswordAuthenticationToken(
                                 username,
                                 null,
-                                Collections.singleton(authority)
+                                authorities
                         );
 
                 // Set authentication in security context
@@ -53,7 +74,8 @@ public class JwtFilter extends OncePerRequestFilter {
 
             } catch (Exception e) {
                 // Invalid or expired token
-                response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                ApiSecurityErrorWriter.write(request, response, HttpServletResponse.SC_UNAUTHORIZED,
+                        "INVALID_ACCESS_TOKEN", "The supplied access token is invalid or expired.");
                 return;
             }
         }

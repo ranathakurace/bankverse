@@ -1,0 +1,4 @@
+target/
+.browsers/
+config/local.properties
+*.log

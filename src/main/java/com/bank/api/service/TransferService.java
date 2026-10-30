@@ -47,7 +47,7 @@ public class TransferService {
        
 
         // 3️⃣ Business validations
-        if (from.getId() == to.getId()) {
+        if (from.getId().equals(to.getId())) {
             throw new TransferFailedException("Cannot transfer to same account");
         }
 

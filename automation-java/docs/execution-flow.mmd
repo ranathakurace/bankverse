@@ -1,0 +1,19 @@
+flowchart TD
+  A[Select suite browser and configuration] --> B{Managed environment?}
+  B -->|Yes| C[Reserve port and start disposable app]
+  B -->|No| D[Use configured QA endpoints]
+  C --> E[Check health and ADMIN credentials]
+  D --> E
+  E --> F[Apply write guard]
+  F --> G[Create test-owned Playwright session]
+  G --> H{Test interface}
+  H -->|UI| I[Browser context and page object]
+  H -->|API| J[HTTP context and domain client]
+  I --> K[Execute scenario and assert business result]
+  J --> K
+  K --> L{Passed?}
+  L -->|No| M[Capture failed UI screenshot and trace]
+  L -->|Yes| N[Close test resources]
+  M --> N
+  N --> O[Publish HTML XML and diagnostics]
+  O --> P[Stop owned application after suite]

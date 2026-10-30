@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-check.1.3.xsd">
+    <!-- Empty by design. Add only reviewed false positives with expiry notes and ticket references. -->
+</suppressions>

@@ -18,6 +18,10 @@ The project focuses on building secure, scalable, and maintainable banking servi
 
 The implementation covers customer management, account management, transactions, authentication, authorization, fraud detection, notifications, API testing, UI automation, and enterprise software engineering practices.
 
+Runtime database and JWT settings are supplied through environment variables; see [Runtime configuration](docs/RUNTIME_CONFIGURATION.md) before starting the application.
+
+Continuous integration, coverage, static analysis, and dependency-security gates are documented in [CI quality gates](docs/CI_QUALITY_GATES.md).
+
 ---
 
 # 🎯 Objectives
@@ -533,3 +537,7 @@ Implemented enterprise-grade customer search functionality with proper validatio
 - REST API Design
 - HTTP Status Codes
 - Layered Architecture
+
+## Playwright UI and API automation
+
+The primary framework is [Playwright Java](automation-java/README.md), using Java 17, TestNG, and Maven for UI and API acceptance tests. Start with the [hands-on handbook](automation-java/docs/HANDBOOK.md) and [demo architecture](automation-java/docs/ARCHITECTURE.md). The earlier TypeScript proof of concept remains in automation as historical reference.
