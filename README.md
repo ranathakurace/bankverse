@@ -1,535 +1,178 @@
-# 🏦 🌍 BankVerse Global Banking Ecosystem
+# BankVerse
 
-![Java](https://img.shields.io/badge/Java-11-orange)
-![Spring Boot](https://img.shields.io/badge/Spring%20Boot-2.7.18-brightgreen)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-18-blue)
-![Build](https://img.shields.io/badge/Build-Maven-red)
-![Status](https://img.shields.io/badge/Status-Story--001%20Completed-success)
+BankVerse is a modular Spring Boot banking-learning platform. It provides an operations console, a customer portal, protected REST APIs, PostgreSQL persistence, and Java automation suites for practicing API, UI, security, database, and CI/CD testing.
 
-Enterprise Digital Banking Platform built using **Spring Boot**, **PostgreSQL**, and **Java** following enterprise software architecture and banking domain best practices.
+> **Learning project, not a production banking system.** Do not use real customer data, production credentials, or real funds.
 
----
+## Current capabilities
 
-# 📖 Overview
+| Area | Implemented capabilities |
+| --- | --- |
+| Identity and access | One-time administrator bootstrap; employee directory; search and server-side pagination; multiple role assignment; active/inactive status; employee password reset; employee password change; BCrypt password storage; JWT access and refresh tokens; RBAC permissions; correlation IDs; security audit history and CSV export. |
+| Customer and KYC | Customer registration, lookup and search; KYC submission, review start, approve/reject decision, history, and customer activation. |
+| Accounts and ledger | Account opening, account/customer lookup, freeze, unfreeze, close, statement lookup, deposits, withdrawals, account-to-account transfers, and ledger history. |
+| Payments | Idempotent payment initiation plus authorize, execute, fail, retry, refund, and lookup workflows. |
+| Cards and loans | Card issuance, lookup, activate, block, unblock, close; loan application, lookup, approve, reject, and idempotent disbursement. |
+| Enterprise controls | Risk-assessment creation, control-case lookup and resolution, and notification handling. |
+| Event operations | Durable outbox event publication, lookup, dispatch, failure, retry, and idempotent consumer receipts. This is an event-driven foundation; an external Kafka/RabbitMQ broker is not bundled. |
+| Customer portal | Customer online-access enrollment and login, password change, account/transaction views, and protected transfers. |
+| Operations UI | Static Operations Console pages for the implemented workflows, including employee administration, API-workspace templates, confirmations, alerts, dialogs, iframe and popup test surfaces, and customer-facing pages. |
 
-BankVerse is an enterprise-style digital banking platform designed to simulate real-world banking systems.
-
-The project focuses on building secure, scalable, and maintainable banking services while following enterprise design principles and clean architecture.
-
-The implementation covers customer management, account management, transactions, authentication, authorization, fraud detection, notifications, API testing, UI automation, and enterprise software engineering practices.
-
----
-
-# 🎯 Objectives
-
-* Build a production-style banking backend.
-* Apply enterprise architecture and design patterns.
-* Learn banking business workflows.
-* Implement secure REST APIs.
-* Practice API, UI, and database testing.
-* Develop reusable automation frameworks.
-* Follow enterprise coding and documentation standards.
-
----
-
-# 🛠 Technology Stack
-
-| Category             | Technology                  |
-| -------------------- | --------------------------- |
-| Programming Language | Java 11                     |
-| Backend Framework    | Spring Boot 2.7.18          |
-| ORM Framework        | Spring Data JPA / Hibernate |
-| Database             | PostgreSQL 18               |
-| Build Tool           | Maven                       |
-| IDE                  | Eclipse IDE 2024-09         |
-| API Client           | Postman                     |
-| Version Control      | Git & GitHub                |
-
----
-
-# 🏗 Architecture
+## Architecture
 
 ```text
-                Client / Postman
-                       │
-                       ▼
-                 REST Controller
-                       │
-                       ▼
-                  Service Layer
-             (Business Logic)
-                       │
-                       ▼
-               Repository Layer
-             (Spring Data JPA)
-                       │
-                       ▼
-                PostgreSQL Database
+Operations Console / Customer Portal / Postman / Test Automation
+                         |
+                         v
+              Spring MVC controllers + validation
+                         |
+                         v
+    Domain services (KYC, accounts, payments, cards, loans, controls)
+        |                 |                    |
+        v                 v                    v
+ JWT/RBAC + audit   Event outbox/receipts   JPA repositories
+                                                  |
+                                                  v
+                                             PostgreSQL
 ```
 
----
+Cross-cutting controls include JWT authentication, role/permission checks, BCrypt passwords, security audit records, correlation IDs, idempotency keys on applicable write operations, and a consistent error response model.
 
-# 📂 Project Structure
+## API modules
+
+The UI includes an API workspace with reusable templates. These route groups are also suitable for Postman and Rest Assured practice.
+
+| Module | Base route |
+| --- | --- |
+| Health | `GET /health` |
+| Employee authentication | `/auth/bootstrap`, `/auth/login`, `/auth/refresh`, `/auth/password` |
+| Employee administration | `/api/v1/admin/employees`, `/api/v1/admin/security-audit` |
+| Customers and KYC | `/api/v1/customers` |
+| Accounts | `/api/v1/accounts` |
+| Ledger transactions | `/api/v1/transactions` |
+| Payments | `/api/v1/payments` |
+| Cards | `/api/v1/cards` |
+| Loans | `/api/v1/loans` |
+| Enterprise controls | `/api/v1/controls` |
+| Event operations | `/api/v1/events` |
+| Customer authentication | `/customer-auth` |
+| Customer portal | `/api/v1/customer-portal` |
+
+Endpoint-level request formats and sample payloads are available in the Operations Console API workspace and the controller/request classes under `src/main/java`.
+
+## Technology
+
+- Java 17 baseline for the application, CI, and automation suites.
+- Spring Boot 4.1.2, Spring Security, Spring Data JPA, Hibernate, Maven.
+- PostgreSQL for local runtime; isolated H2 configuration for tests.
+- JavaScript/CSS static web UI served by Spring Boot.
+- TestNG, Playwright Java, Selenium, Rest Assured, JaCoCo, OWASP Dependency-Check, GitHub Actions, and Jenkins/Docker assets.
+
+## Local launch
+
+### 1. Prepare PostgreSQL
+
+Start PostgreSQL and create a local `bankverse` database. Configure the application process with these required environment variables. Do not put secrets in source control.
+
+```powershell
+$env:BANKVERSE_DB_URL = "jdbc:postgresql://localhost:5432/bankverse"
+$env:BANKVERSE_DB_USERNAME = "postgres"
+$env:BANKVERSE_DB_PASSWORD = "replace-with-your-postgres-password"
+$env:BANKVERSE_JWT_SECRET = "replace-with-a-random-secret-at-least-32-characters-long"
+```
+
+Full guidance, including an Eclipse run configuration, is in [Runtime configuration](docs/RUNTIME_CONFIGURATION.md).
+
+### 2. Start the application
+
+With Maven installed and on your `PATH`:
+
+```powershell
+mvn spring-boot:run
+```
+
+Or in Eclipse, run `com.bank.api.BankingApiApplication` after adding the same four environment variables to **Run Configurations → Environment**.
+
+### 3. Open BankVerse
+
+- Operations Console: <http://localhost:8080/>
+- Health check: <http://localhost:8080/health>
+
+On a new database, use the one-time bootstrap flow to create the first administrator. After that, sign in with the administrator account and manage employees and their roles through **Identity & Access**. The application deliberately does not seed a permanent default password.
+
+## Test suites
+
+### Application unit and integration tests
+
+```powershell
+mvn test
+```
+
+The root suite uses isolated H2 test configuration; it does not require local PostgreSQL credentials.
+
+### Playwright Java acceptance suite
+
+From [`automation-java`](automation-java):
+
+```powershell
+.\scripts\run.ps1 -Suite api
+.\scripts\run.ps1 -Suite all -InstallBrowsers
+.\scripts\run.ps1 -Suite ui -Browser firefox -InstallBrowsers
+```
+
+The managed suite starts BankVerse with a disposable H2 database on `http://127.0.0.1:18080`. See the [Playwright framework guide](automation-java/README.md).
+
+### Selenium UI suite
+
+From [`automation-selenium`](automation-selenium):
+
+```powershell
+mvn clean test -Psmoke
+mvn test -Pregression
+```
+
+The suite exercises enterprise UI controls such as native selects, multi-selects, radio buttons, checkboxes, alerts, iframe switching, popup windows, and error dialogs. See the [Selenium framework guide](automation-selenium/README.md).
+
+### Manual API testing
+
+1. Call `GET /health` and expect `200`.
+2. Bootstrap an administrator once, then call `POST /auth/login`.
+3. Use the returned bearer token for protected routes.
+4. Exercise an end-to-end customer flow: register → submit KYC → start review → approve → activate → open account → deposit/transfer.
+5. Validate expected negative paths: invalid body `400`, invalid credentials `401`, insufficient role `403`, missing resource `404`, and unsupported method `405`.
+6. Test payment/card/loan/control/event state transitions through the API workspace or Postman, sending an `Idempotency-Key` wherever the endpoint requires one.
+
+## Quality gates and CI/CD
+
+GitHub Actions runs the root build, unit/integration tests, JaCoCo coverage, static analysis, OWASP dependency scanning, and cross-browser Playwright acceptance tests. The Dependency-Check workflow uses an NVD API key when available, caches vulnerability data, retries transient NVD failures, and has a guarded data-feed fallback for NVD availability issues.
+
+- [CI quality gates](docs/CI_QUALITY_GATES.md)
+- [Jenkins on Ubuntu with Docker](docs/JENKINS_UBUNTU_DOCKER.md)
+- [`Jenkinsfile`](Jenkinsfile)
+- [GitHub Actions workflows](.github/workflows)
+
+For GitHub Actions, configure `NVD_API_KEY` as a repository secret. The key is never committed to the repository.
+
+## Repository layout
 
 ```text
-src/main/java
-│
-├── controller
-├── service
-├── repository
-├── model
-├── dto
-├── exception
-├── security
-├── client
-└── idempotency
+src/                    Spring Boot application and root test suite
+automation-java/        Playwright Java API and cross-browser UI acceptance tests
+automation-selenium/    Selenium Java UI framework
+automation/             Earlier TypeScript proof of concept
+docs/                   Runtime, quality-gate, and Jenkins documentation
+ci/jenkins/             Docker assets for a Jenkins controller/agent setup
+.github/workflows/      GitHub Actions quality and acceptance pipelines
 ```
 
----
-# 🏦 Enterprise Banking Architecture Roadmap
+## Security and data-handling notes
 
-```text
-                                              🌍 BANKVERSE
-                                  Global Digital Banking Platform
---------------------------------------------------------------------------------------------------
+- Runtime database credentials and JWT signing secrets are supplied through environment variables.
+- `.env` files, access tokens, passwords, and secrets must not be committed.
+- Application test configuration is separate from local runtime configuration.
+- Use disposable databases and dedicated QA accounts for automated write tests.
+- Never point the learning automation suites at a production system.
 
-                                            👤 Customer Channels
-                                                  │
-                     ┌────────────────────────────┼────────────────────────────┐
-                     │                            │                            │
-               🌐 Web Portal                 📱 Mobile App              🤖 AI Assistant
-                     │                            │                            │
-                     └────────────────────────────┼────────────────────────────┘
-                                                  │
-                                           🌐 API Gateway
-                                                  │
- ──────────────────────────────────────────────────────────────────────────────────────────────────
-                                                  │
-        ┌────────────────────┬────────────────────┼────────────────────┬────────────────────┐
-        │                    │                    │                    │                    │
- 👤 Customer Service   🏦 Account Service   💸 Transaction      💳 Payment Gateway   🔔 Notification
-                                              Service                 Service              Service
-        │                    │                    │                    │                    │
-        │                    │                    │                    │                    │
-        ├──────────────┬─────┴────────────┬──────┴──────────────┬─────┴──────────────┐
-        │              │                  │                     │                    │
-   📑 KYC Service  💰 Loan Service   💳 Card Service    👥 Beneficiary        💱 Forex Service
-        │              │                  │                     │                    │
-        └──────────────┴──────────────────┴─────────────────────┴────────────────────┘
-                                                  │
-──────────────────────────────────────────────────────────────────────────────────────────────────
-                                         🔐 Security Layer
-                            JWT • OAuth2 • RBAC • Audit • Logging
-                                                  │
-──────────────────────────────────────────────────────────────────────────────────────────────────
-                                          📨 Event Driven Layer
-                                Kafka • RabbitMQ • Event Streaming
-                                                  │
-──────────────────────────────────────────────────────────────────────────────────────────────────
-                                         💾 Persistence Layer
-                         PostgreSQL • Redis Cache • Object Storage
-                                                  │
-──────────────────────────────────────────────────────────────────────────────────────────────────
-                                       🚀 DevOps & Deployment
-                     Docker • Kubernetes • Jenkins • GitHub Actions
-                                                  │
-──────────────────────────────────────────────────────────────────────────────────────────────────
-                                         🤖 Artificial Intelligence
-                    Fraud Detection • Risk Scoring • Chatbot • Test Generation
-                  AI Code Review • AI Analytics • AI Customer Recommendations
+## Project status
 
-```
-##Progress Legend
-
-🟢 Completed
-🟡 In Progress
-⚪ Planned
-
-Customer Module
-
-🟢 Customer Registration
-
-🟢 Search by Customer Number
-
-🟢 Search by PAN
-
-🟢 Search by Email
-
-🟢 Search by Phone
-
-⚪ Search by Aadhaar
-
-⚪ Search by CIF
-
-⚪ Search by Passport
-
-⚪ Search by Account Number
-
------------------------------------------------------
-
-Account Module
-
-⚪ Open Account
-
-⚪ Close Account
-
-⚪ Freeze Account
-
-⚪ Account Statement
-
------------------------------------------------------
-
-Transaction Module
-
-⚪ Deposit
-
-⚪ Withdrawal
-
-⚪ Fund Transfer
-
-⚪ Transaction History
-
------------------------------------------------------
-
-Payment Gateway (Mock)
-
-⚪ Payment Initiation
-
-⚪ Payment Authorization
-
-⚪ Payment Success
-
-⚪ Payment Failure
-
-⚪ Payment Retry
-
-⚪ Refund
-
-⚪ UPI
-
-⚪ IMPS
-
-⚪ NEFT
-
-⚪ RTGS
-
------------------------------------------------------
-
-Authentication
-
-🟢 JWT Authentication
-
-🟢 Role Based Authorization
-
-⚪ Refresh Token
-
-⚪ OTP Verification
-
------------------------------------------------------
-
-Quality Engineering
-
-🟢 Manual API Testing
-
-🟢 Validation Testing
-
-🟢 Security Testing
-
-⚪ RestAssured Automation
-
-⚪ Integration Testing
-
-⚪ WireMock
-
-⚪ Performance Testing
-
-⚪ Contract Testing
-# 🚀 Features
-
-### ✅ Customer Management
-
-* Enterprise Customer Registration
-* Customer Number Generation
-* Customer Validation
-* Duplicate Customer Detection
-* Customer Status Management
-* KYC Status Initialization
-* Risk Score Initialization
-
-### 🔒 Security
-
-* Global Exception Handling
-* Standard Error Response
-* Enterprise Validation Framework
-
----
-
-# 📋 Current Progress
-
-| Story     | Module                           | Status       	  |
-| --------- | -------------------------------- | -----------  	  |
-| Story-001 | Enterprise Customer Registration | ✅ Completed 	  |
-| Story-002 | Customer Search API		       | ✅ Completed   	  |
-| Story-003 | Cash Deposit                     | ⏳ Planned   	  |
-| Story-004 | Cash Withdrawal                  | ⏳ Planned   	  |
-| Story-005 | Fund Transfer                    | ⏳ Planned   	  |
-| Story-006 | Transaction History              | ⏳ Planned   	  |
-| Story-007 | Authentication & JWT             | ⏳ Planned   	  |
-| Story-008 | Role-Based Authorization         | ⏳ Planned   	  |
-| Story-009 | Fraud Detection                  | ⏳ Planned   	  |
-| Story-010 | Notification Service             | ⏳ Planned   	  |
-
----
-
-# 🔢 Customer Number Format
-
-Customer numbers are generated using a **PostgreSQL Sequence**, ensuring uniqueness even when multiple customer registrations occur simultaneously.
-
-Example:
-
-```text
-CUST000001
-CUST000002
-CUST000003
-```
-
----
-
-# 📌 Completed Stories
-
-## Story-001 – Enterprise Customer Registration
-
-Implemented:
-
-* Layered Architecture
-* Customer Entity
-* Customer Repository
-* Customer Service
-* Customer Controller
-* Customer Request DTO
-* Customer Response DTO
-* PostgreSQL Sequence
-* Duplicate Validation
-* Enterprise Exception Handling
-* Global Exception Handler
-* Customer Number Generation
-* Enterprise Default Initialization
-* AI Assisted Fraud Detection
-* AI Transaction Risk Scoring
-* LLM Powered Customer Support
-
-## Story-002 – Customer Search API
-
-Implemented
-
-* GET Customer by Customer Number
-* Optional.orElseThrow()
-* CustomerNotFoundException
-* DTO Mapping
-* REST Response
-* HTTP 200
-* HTTP 404
-* Input Validation
-
----
-
-# 🔮 Planned Enhancements
-
-* JWT Authentication
-* Refresh Tokens
-* Role-Based Authorization
-* Account Management
-* Transaction Management
-* Loan Management
-* Credit Card Module
-* Fraud Detection Engine
-* Notification Service
-* Audit Logging
-* Docker
-* Kubernetes
-* Redis
-* Kafka
-* Swagger / OpenAPI
-* Jenkins CI/CD
-* Selenium Automation
-* RestAssured API Automation
-
----
-
-# 🤝 Contributing
-
-Contributions, suggestions, and improvements are welcome.
-
-Please open an issue or submit a pull request after discussing significant changes.
-
----
-
-# 📄 License
-
-This repository is intended for educational purposes and enterprise software engineering practice.
-## Development Journal
-
-#### Story-001 Completion
-
-✔ Positive API testing completed
-✔ Duplicate PAN validation (409 Conflict)
-✔ Invalid Email validation
-✔ Invalid Phone Number validation
-✔ Invalid PAN validation
-✔ Invalid Aadhaar validation
-✔ Invalid Customer Name validation
-✔ Centralized exception handling verified
-✔ Enterprise error responses validated
-#### Today's Achievement
-
-✔ Completed Story-002
-
-Implemented four enterprise search APIs using:
-
-- Spring Boot
-- Spring Data JPA
-- Custom Exceptions
-- Optional.orElseThrow()
-- Input Normalization
-- Enterprise Validation
-- RESTful API Design
-
-All APIs have been manually validated using Postman with positive and negative test cases.
-Current Status:
-Story-001 Customer Registration completed successfully.
-## 📅 Latest Progress (30-Jun-2026)
-
-### Story-001 Enterprise Customer Registration
-
-#### Development
-- ✅ Enterprise validation framework completed
-- ✅ Global exception handling implemented
-- ✅ PostgreSQL sequence-based customer number generation
-- ✅ Enterprise error response structure
-
-#### Testing Completed
-- ✅ Positive Testing
-- ✅ Mandatory Field Validation
-- ✅ Duplicate Validation
-- ✅ Format Validation
-- ✅ Boundary Value Analysis (Age 17, 18, 19)
-- ✅ HTTP Method Validation (GET/PUT/DELETE)
-- ✅ Malformed JSON validation
-
-#### Defect Fixed
-- Fixed malformed JSON request returning **500 Internal Server Error**.
-- Added `HttpMessageNotReadableException` handler.
-- API now correctly returns:
-  - HTTP 400 Bad Request
-  - `INVALID_REQUEST`
-  - `Malformed JSON request.`
-  
-  ## 📅 Latest Progress (01-Jul-2026)
-
-### Story-002 Customer Search API
-
-#### Development
-
-- ✅ GET Customer by Customer Number
-- ✅ Customer Search Service
-- ✅ CustomerNotFoundException
-- ✅ DTO Mapping
-- ✅ Repository Search using Optional
-- ✅ Spring Security updated for GET endpoint
-
-#### Testing Completed
-
-- ✅ Existing Customer (200 OK)
-- ✅ Customer Not Found (404)
-- ✅ Blank Customer Number
-- ✅ Invalid Customer Number
-- ✅ Security Validation
-
-#### Design Improvements
-
-- Added Customer Number validation before database access.
-- Applied RESTful HTTP status codes.
-- Improved service layer exception handling.
-# 📅 Progress Update (02-Jul-2026)
-
-## ✅ Story-002 Completed - Enterprise Customer Search APIs
-
-Implemented enterprise-grade customer search functionality with proper validation, normalization, exception handling and testing.
-
-### Implemented APIs
-
-| API | Status |
-|------|--------|
-| GET /api/v1/customers/{customerNumber} | ✅ Completed |
-| GET /api/v1/customers/search?pan= | ✅ Completed |
-| GET /api/v1/customers/search/email?email= | ✅ Completed |
-| GET /api/v1/customers/search/phone?phone= | ✅ Completed |
-
----
-
-## Enterprise Features Implemented
-
-- ✅ Input normalization
-- Trim whitespace
-- PAN converted to uppercase
-- Email converted to lowercase
-
-- ✅ Business validation
-- Customer Number validation
-- PAN format validation
-- Email format validation
-- Phone number validation
-
-- ✅ Exception handling
-- InvalidCustomerException
-- CustomerNotFoundException
-
-- ✅ Repository search using Spring Data JPA
-
-- ✅ RESTful HTTP Status Codes
-- 200 OK
-- 400 Bad Request
-- 404 Not Found
-
----
-
-## Testing Completed
-
-### Positive Testing
-
-- Existing Customer Number
-- Existing PAN
-- Existing Email
-- Existing Phone Number
-
-### Negative Testing
-
-- Invalid Customer Number
-- Invalid PAN
-- Invalid Email
-- Invalid Phone
-
-### Boundary & Validation
-
-- Leading spaces
-- Trailing spaces
-- Lowercase PAN
-- Uppercase Email
-- Invalid regex
-- Unknown customer
-- Empty values
-- Duplicate scenarios
-
----
-
-## Enterprise Concepts Learned
-
-- Spring Data JPA Query Methods
-- Optional<T>
-- orElseThrow()
-- Custom Exceptions
-- DTO Mapping
-- Input Normalization
-- REST API Design
-- HTTP Status Codes
-- Layered Architecture
+The repository currently provides a comprehensive **modular-monolith and event-outbox foundation** for learning. A future production-grade decomposition would require separate deployable services, a real message broker, centralized observability, database migrations/governance, production secrets management, resilience testing, and operational runbooks.

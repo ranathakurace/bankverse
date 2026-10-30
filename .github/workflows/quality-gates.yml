@@ -1,0 +1,110 @@
+name: BankVerse quality gates
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  schedule:
+    # Keeps the cached NVD data current even when no pull request is open.
+    - cron: '17 3 * * *'
+
+concurrency:
+  # A single NVD key should not service overlapping scans for the same change.
+  group: quality-gates-${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  quality:
+    name: Build, test, coverage and static analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+      - name: Run quality gates
+        run: mvn --batch-mode verify -Pquality
+      - name: Publish JaCoCo report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-report
+          path: target/site/jacoco/
+          if-no-files-found: warn
+      - name: Publish SpotBugs report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: spotbugs-report
+          path: target/spotbugsXml.xml
+          if-no-files-found: warn
+
+  dependency-security:
+    name: OWASP dependency vulnerability scan
+    runs-on: ubuntu-latest
+    # The first NVD database build is large. Later runs restore the cached data
+    # and apply only incremental CVE updates.
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Create OWASP cache key
+        id: owasp-cache-key
+        run: echo "date=$(date -u +'%Y%m%d')" >> "$GITHUB_OUTPUT"
+      - name: Restore OWASP vulnerability data
+        uses: actions/cache/restore@v5
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-owasp-maven-${{ steps.owasp-cache-key.outputs.date }}-${{ hashFiles('pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-owasp-maven-
+      - name: Verify NVD API key is configured
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: |
+          if [ -z "$NVD_API_KEY" ]; then
+            echo "::error::Repository secret NVD_API_KEY is required for the OWASP scan. Request one from https://nvd.nist.gov/developers/request-an-api-key and add it in Settings > Secrets and variables > Actions."
+            exit 1
+          fi
+      - name: Scan dependencies
+        env:
+          NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
+        run: |
+          set +e
+          mvn --batch-mode verify -Psecurity -DskipTests 2>&1 | tee owasp-live-nvd.log
+          scan_status="${PIPESTATUS[0]}"
+          set -e
+          if [ "$scan_status" -eq 0 ]; then
+            exit 0
+          fi
+          if ! grep -Eq 'NVD Returned Status Code: (429|5[0-9]{2})|Error updating the NVD Data' owasp-live-nvd.log; then
+            echo "::error::Dependency scan failed for a non-NVD reason; the fallback will not mask the failure."
+            exit "$scan_status"
+          fi
+          echo "::warning::The live NVD API failed. Retrying with OWASP's published NVD data-feed mirror."
+          mvn --batch-mode verify -Psecurity -DskipTests \
+            -DnvdDatafeedUrl='https://dependency-check.github.io/DependencyCheck_Builder/nvd_cache/nvdcve-{0}.json.gz'
+      - name: Save OWASP vulnerability data
+        if: success()
+        uses: actions/cache/save@v5
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-owasp-maven-${{ steps.owasp-cache-key.outputs.date }}-${{ hashFiles('pom.xml') }}
+      - name: Publish OWASP reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: owasp-dependency-check-report
+          path: |
+            target/dependency-check-report.*
+            owasp-live-nvd.log
+          if-no-files-found: warn

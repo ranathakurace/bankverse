@@ -1,0 +1,9 @@
+.git
+target/
+**/target/
+**/node_modules/
+.env
+.env.*
+!automation/.env.example
+**/config/local.properties
+*.log

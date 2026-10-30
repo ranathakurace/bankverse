@@ -1,0 +1,387 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>BankVerse Playwright Java handbook</title><style>
+:root{--navy:#123c59;--teal:#137f70;--ink:#203748;--muted:#536b7a}
+*{box-sizing:border-box}html{scroll-behavior:smooth}
+body{overflow-wrap:anywhere;margin:0;background:#f0f4f7;color:var(--ink);font:16px/1.7 'Segoe UI',Arial,sans-serif}
+a{color:#126e9b;text-decoration-thickness:1px;text-underline-offset:3px}
+.cover{background:var(--navy);color:white;padding:56px max(5vw,24px);border-bottom:7px solid #36b59d}
+.cover .eyebrow{font-size:13px;letter-spacing:2px;color:#a9dfd6;font-weight:700}
+h1{font-size:clamp(30px,4vw,52px);line-height:1.15;margin:14px 0}
+.cover p{max-width:850px;color:#dceaf0}.badges{display:flex;gap:12px;flex-wrap:wrap;margin-top:24px}
+.badges span{border:1px solid #7a9dad;border-radius:5px;padding:7px 14px}
+button{background:#137f70;color:white;border:0;border-radius:5px;padding:11px 17px;font:inherit;cursor:pointer}
+.layout{display:grid;grid-template-columns:230px minmax(0,1fr);max-width:1480px;margin:auto}
+nav{position:sticky;top:0;align-self:start;padding:28px 20px;font-size:14px}
+nav strong{display:block;color:var(--navy);margin:4px 0 14px}nav a{display:block;text-decoration:none;padding:9px 0}
+main{min-width:0;padding:30px 36px 80px}
+article{background:white;border:1px solid #dce5eb;border-radius:8px;padding:36px 42px;margin:0 0 30px;scroll-margin-top:18px}
+h2{font-size:29px;line-height:1.25;color:var(--navy);margin:0 0 25px}
+h3{font-size:22px;line-height:1.35;color:var(--navy);margin:36px 0 14px;border-bottom:1px solid #d9e4e9;padding-bottom:8px}
+h4{color:var(--navy)}p{margin:12px 0 18px}li{margin:7px 0}
+figure{margin:22px 0;background:white}figure svg{width:100%;height:auto;display:block}
+figcaption{font-size:13px;color:var(--muted);text-align:center;margin-top:8px}
+.table-wrap{overflow:auto;margin:20px 0}table{width:100%;border-collapse:collapse;font-size:13.5px;line-height:1.55;table-layout:fixed}
+th,td{text-align:left;vertical-align:top;border:1px solid #d8e2e8;padding:11px;overflow-wrap:anywhere}
+th{background:var(--navy);color:white}tr:nth-child(even){background:#f4f8fa}
+code{font-family:Consolas,'Courier New',monospace;font-size:.9em;overflow-wrap:anywhere}
+p code,li code,td code{background:#edf3f6;padding:2px 4px;border-radius:3px}
+.code-label{background:#e3edf2;color:#294c60;border:1px solid #cfdee7;border-bottom:0;padding:5px 14px;font-size:12px;font-weight:700;margin-top:18px}
+pre{margin:0 0 22px;padding:16px;background:#f5f8fa;border:1px solid #cfdee7;color:#18334d;white-space:pre-wrap;overflow-wrap:anywhere;font-size:13px;line-height:1.6}
+footer{color:var(--muted);padding:0 36px 32px;text-align:center;font-size:13px}
+@media(max-width:850px){.layout{display:block}nav{position:static;padding:18px 22px}nav a{display:inline-block;margin-right:18px}main{padding:10px}article{padding:24px 20px}table{font-size:12px}th,td{padding:7px}}
+@media print{@page{size:A4;margin:17mm}body{background:white;font-size:10.5pt;line-height:1.5}.cover{background:white;color:#123c59;padding:0 0 20px}.cover p,.cover .eyebrow{color:#36596b}.badges span{border-color:#9baeb8}nav,button{display:none}.layout{display:block}main{padding:0}article{border:0;border-radius:0;padding:0;margin:0;break-before:page}h2,h3,h4{break-after:avoid}h2{font-size:21pt}h3{font-size:15pt}table{font-size:8pt}tr{break-inside:avoid}thead{display:table-header-group}figure{break-inside:avoid}figure svg{max-height:245mm}pre{font-size:8.5pt;white-space:pre-wrap}a{color:#203748}footer{padding-top:16px}}
+</style></head>
+<body><header class="cover"><div class="eyebrow">BANKVERSE ENGINEERING HANDBOOK</div><h1>Playwright Java<br>UI and API testing</h1><p>A practical guide to the framework architecture, real banking scenarios, Playwright edge cases, and a repeatable demo. All diagrams and content work offline.</p><div class="badges"><span>Java 17</span><span>Maven and TestNG</span><span>3 browser engines</span><span>UI and HTTP API</span></div></header>
+<div class="layout"><nav aria-label="Handbook contents"><strong>IN THIS HANDBOOK</strong><a href="#architecture">Architecture and flowcharts</a><a href="#hands-on">Hands-on guide</a><a href="#edge-cases">Edge-case catalog</a><a href="#demo">Demo script</a><a href="#validation">Validation record</a><button onclick="window.print()">Print or save as PDF</button></nav><main><article id="architecture"><h2>Framework architecture for the demo</h2>
+<p>This framework tests BankVerse through the same browser and HTTP boundaries used by clients. Java test code lives in a standalone Maven module named automation-java. Spring Boot application dependencies remain in the parent application&#x27;s pom.xml.</p>
+<h3>Architecture flowchart</h3>
+<figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1240 1090" role="img" aria-label="Java Playwright framework architecture"><rect width="1240" height="1090" fill="white"/><style>text{font-family:Arial,sans-serif;fill:#18334d;font-size:18px}.title{font-size:27px;font-weight:bold}.small{font-size:15px;fill:#526c7d}.box{fill:#eef5fa;stroke:#7996ab;stroke-width:1.5}.accent{fill:#e6f5f1;stroke:#188575;stroke-width:1.8}.dark{fill:#123c59;stroke:#123c59}.white{fill:white}.arrow{fill:none;stroke:#59758a;stroke-width:2;marker-end:url(#arr)}.dashed{stroke-dasharray:6 5}</style><defs><marker id="arr" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0 0L10 4L0 8" fill="#59758a"/></marker></defs><text x="620" y="34" text-anchor="middle" class="title">BankVerse Java UI and API framework</text><rect x="60" y="65" width="300" height="60" rx="10" class="box"/><text x="210" y="101" text-anchor="middle" class="">Command line scripts</text><rect x="470" y="65" width="300" height="60" rx="10" class="box"/><text x="620" y="101" text-anchor="middle" class="">IDE or TestNG suite</text><rect x="880" y="65" width="300" height="60" rx="10" class="box"/><text x="1030" y="101" text-anchor="middle" class="">GitHub Actions matrix</text><path d="M210 125V145H620V170" class="arrow "/><path d="M620 125V170" class="arrow "/><path d="M1030 125V145H620" class="arrow "/><rect x="430" y="170" width="380" height="65" rx="10" class="dark"/><text x="620" y="208.5" text-anchor="middle" class="white">Maven Surefire and TestNG</text><rect x="40" y="180" width="300" height="65" rx="10" class="box"/><text x="190" y="206.5" text-anchor="middle" class="">RunConfig</text><text x="190" y="230.5" text-anchor="middle" class="">Validated environment settings</text><path d="M340 210H430" class="arrow "/><rect x="880" y="180" width="320" height="65" rx="10" class="box"/><text x="1040" y="206.5" text-anchor="middle" class="">Suite lifecycle</text><text x="1040" y="230.5" text-anchor="middle" class="">App health and ADMIN preflight</text><path d="M810 205H880" class="arrow "/><path d="M1040 245V290H810" class="arrow "/><rect x="430" y="280" width="380" height="85" rx="10" class="accent"/><text x="620" y="316.5" text-anchor="middle" class="">Per-test TestSession</text><text x="620" y="340.5" text-anchor="middle" class="">Playwright owned by one thread</text><rect x="40" y="290" width="300" height="75" rx="10" class="box"/><text x="190" y="321.5" text-anchor="middle" class="">CustomerData and flows</text><text x="190" y="345.5" text-anchor="middle" class="">Fresh data and KYC prerequisites</text><path d="M340 330H430" class="arrow dashed"/><path d="M620 365V390H365V425" class="arrow "/><path d="M620 390H875V425" class="arrow "/><rect x="200" y="425" width="330" height="65" rx="10" class="box"/><text x="365" y="451.5" text-anchor="middle" class="">UI page objects</text><text x="365" y="475.5" text-anchor="middle" class="">LoginPage and CustomersPage</text><rect x="710" y="425" width="330" height="65" rx="10" class="box"/><text x="875" y="451.5" text-anchor="middle" class="">API domain clients</text><text x="875" y="475.5" text-anchor="middle" class="">Auth, customers, ledger</text><path d="M365 490V530" class="arrow "/><path d="M875 490V530" class="arrow "/><rect x="200" y="530" width="330" height="75" rx="10" class="accent"/><text x="365" y="561.5" text-anchor="middle" class="">BrowserContext and Page</text><text x="365" y="585.5" text-anchor="middle" class="">Locator and FrameLocator</text><rect x="710" y="530" width="330" height="75" rx="10" class="accent"/><text x="875" y="561.5" text-anchor="middle" class="">APIRequestContext</text><text x="875" y="585.5" text-anchor="middle" class="">HTTP without a browser</text><path d="M365 605V630H620V660" class="arrow "/><path d="M875 605V630H620" class="arrow "/><rect x="380" y="660" width="480" height="65" rx="10" class="dark"/><text x="620" y="698.5" text-anchor="middle" class="white">BankVerse UI and REST endpoints</text><path d="M620 725V765" class="arrow "/><rect x="380" y="765" width="480" height="65" rx="10" class="box"/><text x="620" y="791.5" text-anchor="middle" class="">Security → Controller → Service</text><text x="620" y="815.5" text-anchor="middle" class="">Repository and persistence</text><path d="M620 830V875" class="arrow "/><rect x="380" y="875" width="480" height="80" rx="10" class="accent"/><text x="620" y="909" text-anchor="middle" class="">Managed disposable H2 database</text><text x="620" y="933" text-anchor="middle" class="">or isolated external QA deployment</text><path d="M860 695H1030V745" class="arrow "/><rect x="900" y="745" width="300" height="70" rx="10" class="box"/><text x="1050" y="774" text-anchor="middle" class="">Business and contract</text><text x="1050" y="798" text-anchor="middle" class="">assertions</text><path d="M1050 815V855" class="arrow "/><rect x="900" y="855" width="300" height="70" rx="10" class="box"/><text x="1050" y="896" text-anchor="middle" class="">TestNG HTML / Surefire XML</text><path d="M1050 925V965" class="arrow "/><rect x="900" y="965" width="300" height="70" rx="10" class="box"/><text x="1050" y="994" text-anchor="middle" class="">Failed UI evidence</text><text x="1050" y="1018" text-anchor="middle" class="">Screenshot and trace</text><text x="60" y="1020" class="small">Each test owns its data and contexts. Only UI scenarios launch a browser.</text><text x="60" y="1048" class="small">Java 17 • Maven • TestNG • Playwright Java • No application runtime dependency changes</text></svg><figcaption>Framework architecture</figcaption></figure>
+<p>The editable Mermaid source is architecture.mmd. The SVG works offline in a browser, Word, or a presentation.</p>
+<h3>Responsibilities by layer</h3>
+<div class="table-wrap"><table><thead><tr><th>Layer</th><th>Files</th><th>Responsibility</th></tr></thead><tbody>
+<tr><td>Entry points</td><td>scripts/run.ps1, scripts/run.sh, pom.xml, testng.xml</td><td>Choose suite, browser, headless mode, and parallelism</td></tr>
+<tr><td>Configuration</td><td>config/RunConfig.java</td><td>Validate origins, credentials, booleans, timeouts, and managed/external mode</td></tr>
+<tr><td>Suite lifecycle</td><td>core/BaseTest.java, core/ManagedApplication.java</td><td>Start a disposable application, wait for health, provision a managed administrator, validate login, stop owned processes</td></tr>
+<tr><td>Test lifecycle</td><td>core/TestSession.java, core/PlaywrightFactory.java</td><td>Create thread-owned Playwright instances, lazy browser/API contexts, authentication, failure evidence, and cleanup</td></tr>
+<tr><td>Write protection</td><td>core/WriteGuard.java and BaseTest before-method check</td><td>Exclude write methods on existing environments unless explicitly enabled; direct IDE runs also check the write tag</td></tr>
+<tr><td>API clients</td><td>api/AuthClient.java, CustomersClient.java, LedgerClient.java</td><td>Express HTTP operations and endpoint paths through APIRequestContext</td></tr>
+<tr><td>Page objects</td><td>pages/LoginPage.java, CustomersPage.java</td><td>Express UI actions with test IDs, roles, labels, and response waits</td></tr>
+<tr><td>Reusable business setup</td><td>flows/OnboardingFlow.java</td><td>Register customer, complete KYC, activate customer, and open a fresh account</td></tr>
+<tr><td>Data</td><td>data/CustomerData.java</td><td>Generate synthetic, per-test customer identities</td></tr>
+<tr><td>Assertions</td><td>assertions/Contracts.java</td><td>Check response status, required fields, structured errors, and absence of sensitive fields</td></tr>
+<tr><td>Tests</td><td>tests/api, tests/ui</td><td>Describe scenarios and assert business outcomes</td></tr>
+<tr><td>Evidence</td><td>target/surefire-reports, target/artifacts, target/application.log</td><td>Provide HTML/XML results, failed UI screenshots/traces, and server diagnostics</td></tr>
+</tbody></table></div>
+<h3>Why these design decisions matter</h3>
+<p>Playwright Java is the automation library. TestNG supplies test discovery, lifecycle annotations, data providers, groups, and class-level parallel execution. Maven Surefire supplies command-line test execution, XML integration, and failure exit codes. This is different from the TypeScript Playwright Test runner: there is no playwright.config.ts, built-in project dependency graph, or TypeScript HTML reporter in this Java module.</p>
+<p>API tests use Playwright APIRequestContext, so no browser is launched for an API-only run. A driver process is still required by the Java library. UI tests use Browser, BrowserContext, Page, Locator, and web-first assertions. Hybrid scenarios use both interfaces in the same test to check persistence.</p>
+<p>Every invocation creates a separate TestSession on the executing TestNG thread. The instance creates and disposes its own Playwright, request contexts, and browser resources. ThreadLocal associates that session with its owner; an explicit thread check catches accidental cross-thread use. Parallelism is configured at class level, with two workers by default. Increase it only after measuring the environment and ensuring all prerequisites remain independent.</p>
+<p>The browser is lazy: test().api() authenticates and creates an HTTP context; test().page() launches a browser only when UI automation asks for it. This keeps API runs independent of browser binaries. Browser reuse and session pooling can be added later, but the current preference is clear isolation and predictable teardown.</p>
+<h3>Execution flowchart</h3>
+<figure><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1420" role="img" aria-label="Java test execution lifecycle"><rect width="1000" height="1420" fill="white"/><style>text{font-family:Arial,sans-serif;fill:#18334d;font-size:18px}.title{font-size:27px;font-weight:bold}.small{font-size:15px;fill:#526c7d}.box{fill:#eef5fa;stroke:#7996ab;stroke-width:1.5}.accent{fill:#e6f5f1;stroke:#188575;stroke-width:1.8}.dark{fill:#123c59;stroke:#123c59}.white{fill:white}.arrow{fill:none;stroke:#59758a;stroke-width:2;marker-end:url(#arr)}.dashed{stroke-dasharray:6 5}</style><defs><marker id="arr" markerWidth="10" markerHeight="8" refX="9" refY="4" orient="auto"><path d="M0 0L10 4L0 8" fill="#59758a"/></marker></defs><text x="500" y="35" text-anchor="middle" class="title">Execution and cleanup lifecycle</text><rect x="280" y="65" width="440" height="65" rx="10" class="dark"/><text x="500" y="103.5" text-anchor="middle" class="white">Select suite, browser, configuration</text><path d="M500 130V160" class="arrow "/><path d="M500 160L640 220L500 280L360 220Z" class="accent"/><text x="500" y="212" text-anchor="middle">Managed</text><text x="500" y="236" text-anchor="middle">environment?</text><path d="M360 220H240V300" class="arrow "/><path d="M640 220H760V300" class="arrow "/><text x="275" y="209" class="small">yes</text><text x="680" y="209" class="small">no</text><rect x="60" y="300" width="360" height="75" rx="10" class="box"/><text x="240" y="331.5" text-anchor="middle" class="">Reserve port and start app</text><text x="240" y="355.5" text-anchor="middle" class="">Disposable H2 database</text><rect x="580" y="300" width="360" height="75" rx="10" class="box"/><text x="760" y="331.5" text-anchor="middle" class="">Use existing QA endpoints</text><text x="760" y="355.5" text-anchor="middle" class="">No external bootstrap</text><path d="M240 375V400H500V425" class="arrow "/><path d="M760 375V400H500" class="arrow "/><rect x="280" y="425" width="440" height="65" rx="10" class="accent"/><text x="500" y="463.5" text-anchor="middle" class="">Health and ADMIN login preflight</text><path d="M500 490V525" class="arrow "/><rect x="280" y="525" width="440" height="65" rx="10" class="box"/><text x="500" y="551.5" text-anchor="middle" class="">Select eligible test methods</text><text x="500" y="575.5" text-anchor="middle" class="">Guard external writes</text><path d="M500 590V625" class="arrow "/><rect x="280" y="625" width="440" height="65" rx="10" class="accent"/><text x="500" y="651.5" text-anchor="middle" class="">BeforeMethod: create TestSession</text><text x="500" y="675.5" text-anchor="middle" class="">Playwright stays on owner thread</text><path d="M500 690V715H240V745" class="arrow "/><path d="M500 715H760V745" class="arrow "/><rect x="60" y="745" width="360" height="65" rx="10" class="box"/><text x="240" y="783.5" text-anchor="middle" class="">UI browser and page object</text><rect x="580" y="745" width="360" height="65" rx="10" class="box"/><text x="760" y="783.5" text-anchor="middle" class="">API context and domain client</text><path d="M240 810V840H500V865" class="arrow "/><path d="M760 810V840H500" class="arrow "/><rect x="280" y="865" width="440" height="65" rx="10" class="dark"/><text x="500" y="903.5" text-anchor="middle" class="white">Execute scenario and assert outcome</text><path d="M500 930V960" class="arrow "/><path d="M500 960L640 1020L500 1080L360 1020Z" class="accent"/><text x="500" y="1012" text-anchor="middle">Test passed?</text><path d="M640 1020H790V1095" class="arrow "/><text x="700" y="1009" class="small">no</text><rect x="630" y="1095" width="320" height="70" rx="10" class="box"/><text x="790" y="1124" text-anchor="middle" class="">Failed UI only</text><text x="790" y="1148" text-anchor="middle" class="">Capture screenshot and trace</text><path d="M500 1080V1200" class="arrow "/><text x="445" y="1130" class="small">yes</text><path d="M790 1165V1232H720" class="arrow "/><rect x="280" y="1200" width="440" height="65" rx="10" class="box"/><text x="500" y="1238.5" text-anchor="middle" class="">AfterMethod: close test resources</text><path d="M500 1265V1300" class="arrow "/><rect x="180" y="1300" width="640" height="80" rx="10" class="accent"/><text x="500" y="1334" text-anchor="middle" class="">Publish HTML / XML / diagnostics</text><text x="500" y="1358" text-anchor="middle" class="">AfterSuite: stop the owned application</text></svg><figcaption>Test lifecycle</figcaption></figure>
+<h3>Exact lifecycle</h3>
+<ol>
+<li>Maven Surefire discovers TestNG test methods and selects groups.</li>
+<li>WriteGuard removes write-tagged methods if external mode has not opted into mutation.</li>
+<li>BaseTest BeforeSuite starts the managed app or uses the configured QA endpoints.</li>
+<li>ManagedApplication verifies that the local port is available, starts Maven in the parent application folder, and polls health for up to 180 seconds.</li>
+<li>A suite-local Playwright/API context checks health, checks bootstrap status, creates an administrator only for a new managed database, and verifies an ADMIN login. It closes before parallel test execution starts.</li>
+<li>BeforeMethod creates the invocation&#x27;s TestSession on that test&#x27;s thread. A second write check protects direct IDE execution.</li>
+<li>The test asks for anonymous API, authenticated API, a blank UI page, or a signed-in UI page.</li>
+<li>Clients/page objects perform actions; contracts and test assertions verify results.</li>
+<li>AfterMethod captures screenshot and trace for failed UI tests, then closes contexts, browser, driver, and clears ThreadLocal state.</li>
+<li>AfterSuite stops only the application process tree created by this suite. A JVM shutdown hook is a fallback when the run is interrupted.</li>
+</ol>
+<p>Setup failures fail the Maven build. Test failures fail the build. Teardown errors fail the build. Evidence capture is best effort and does not replace the original test failure. There are no automatic test retries or hidden request retries.</p>
+<h3>Data and authentication flow</h3>
+<p>A fresh customer payload uses a UUID email, random valid PAN, phone, and Aadhaar-like synthetic identifiers. It is created per scenario or data-provider invocation. The framework avoids shared customer numbers and shared account balances.</p>
+<p>The application stores employee login data in sessionStorage. The signed-in helper authenticates through API, opens the UI origin, seeds sessionStorage once, and reloads the UI. It does not continually reinject credentials on navigation, so logout can remain effective. Dedicated login tests exercise the real login form. A new BrowserContext starts without authentication; a separate context test verifies that boundary.</p>
+<p>Authenticated API contexts attach a per-test X-Correlation-ID. It is available in TestSession.correlationId and failure report output. This ID identifies API-context calls, not all UI requests; the current frontend generates or receives its own correlation values.</p>
+<h3>Environment boundary</h3>
+<p>Managed mode uses H2 with PostgreSQL compatibility, generated test-only JWT signing configuration, isolated port 18080, and the existing test schema for customer/account sequences. External mode uses the configured deployed application&#x27;s persistence and secrets. The framework never bootstraps an external environment.</p>
+<p>H2 acceptance tests do not establish PostgreSQL parity, production scalability, full security assurance, or concurrency correctness for financial operations. A release gate should also run against an isolated PostgreSQL QA deployment. The framework can target that deployment through START_APP=false.</p>
+<h3>CI flow</h3>
+<p>GitHub Actions checks out the repository, configures JDK 17 and Maven caching, installs matching browser dependencies, then runs one job per browser. Chromium executes API plus UI coverage; Firefox and WebKit run UI coverage. Each job owns its own disposable application and H2 database. Reports and evidence are uploaded with seven-day retention.</p>
+<p>The earlier TypeScript directory is retained as reference. This Java module is the primary documented entry point and CI target.</p>
+<h3>Official design references</h3>
+<ul>
+<li><a href="https://playwright.dev/java/docs/api-testing">Playwright Java API testing</a></li>
+<li><a href="https://playwright.dev/java/docs/multithreading">Playwright Java threading model</a></li>
+<li><a href="https://playwright.dev/java/docs/test-runners">Playwright Java test runners</a></li>
+<li><a href="https://playwright.dev/java/docs/trace-viewer">Playwright Java tracing</a></li>
+<li><a href="https://playwright.dev/java/docs/browsers">Playwright Java browser installation</a></li>
+</ul></article>
+<article id="hands-on"><h2>BankVerse Playwright Java hands-on handbook</h2>
+<p>This handbook is for a Java developer or QA engineer learning to test BankVerse through Playwright. It explains setup, framework responsibilities, test execution, debugging, and safe extension. Read ARCHITECTURE.md for the design diagrams, EDGE_CASE_CATALOG.md for scenarios, and DEMO_SCRIPT.md for a presentation walkthrough. The offline handbook.html combines these documents and embeds the flowcharts.</p>
+<h3>1 Prerequisites and workspace</h3>
+<p>Install a JDK 17 or later and Maven 3.9 or later. Verify both resolve to the intended Java installation:</p>
+<div class="code-label">powershell</div><pre><code>java -version
+mvn -version</code></pre>
+<p>Keep automation-java directly below banking-api. ManagedApplication starts the parent application&#x27;s Maven build, so moving this module outside the repository requires updating that launcher. The root application still declares Java 11 compatibility; the independent test module deliberately uses Java 17 records, switch expressions, and process APIs.</p>
+<p>The first run downloads Maven dependencies and Playwright&#x27;s Java driver bundle. Browser installation downloads browser builds matching the pinned Java Playwright version. Corporate proxies must allow the configured Maven repository and Playwright CDN. Do not work around TLS problems by disabling certificate verification; configure your proxy/CA through your normal Java and network setup.</p>
+<p>No npm installation is needed. Playwright Java supplies its driver runtime. API-only runs require the driver, but no Chromium/Firefox/WebKit installation.</p>
+<h3>2 First successful run</h3>
+<p>From the repository root, enter automation-java and run:</p>
+<div class="code-label">powershell</div><pre><code>cd automation-java
+.\scripts\run.ps1 -Suite api
+.\scripts\run.ps1 -Suite all -InstallBrowsers</code></pre>
+<p>The first command runs HTTP tests only. The second installs Chromium and runs the API plus Chromium UI suite. Each run creates a new temporary application database, provisions its own administrator, and shuts the app down after the suite.</p>
+<p>Install and run the other browsers:</p>
+<div class="code-label">powershell</div><pre><code>.\scripts\run.ps1 -Suite ui -Browser firefox -InstallBrowsers
+.\scripts\run.ps1 -Suite ui -Browser webkit -InstallBrowsers</code></pre>
+<p>For a visible demonstration:</p>
+<div class="code-label">powershell</div><pre><code>.\scripts\run.ps1 -Suite smoke -Browser chromium -Headed</code></pre>
+<p>Use a fresh PowerShell session if execution policy prevents invoking a locally authored script, or run the equivalent Maven commands below under your organization&#x27;s approved script policy. The framework does not change global execution policy.</p>
+<p>Linux/macOS equivalents:</p>
+<div class="code-label">bash</div><pre><code>bash scripts/run.sh api
+bash scripts/run.sh all chromium install
+bash scripts/run.sh ui firefox install
+HEADLESS=false bash scripts/run.sh smoke chromium</code></pre>
+<h3>3 What happens to the application</h3>
+<p>Managed mode binds a new application to 127.0.0.1:18080. A port collision fails the run rather than attaching to another app. ManagedApplication creates a child Maven process in the parent directory and passes datasource/JWT settings only to that process. H2 data disappears when that JVM stops. The existing schema.sql initializes the customer and account sequences.</p>
+<p>The framework uses synthetic test data. Default administrator credentials are fixtures for this disposable app, not production credentials. Tests do not connect to the developer&#x27;s PostgreSQL database.</p>
+<p>The readiness wait is bounded at 180 seconds. Startup output is redirected to target/application.log so you can diagnose compilation, dependency, schema, or port failures. A suite failure still triggers application cleanup. If a terminal is force-killed beyond Java shutdown-hook control, inspect the specific test process/port before starting another run; do not indiscriminately terminate Java processes.</p>
+<h3>4 Run suites and individual tests</h3>
+<div class="table-wrap"><table><thead><tr><th>Goal</th><th>Maven command</th></tr></thead><tbody>
+<tr><td>All API and Chromium UI tests</td><td>mvn test</td></tr>
+<tr><td>API only</td><td>mvn test -Papi</td></tr>
+<tr><td>UI only</td><td>mvn test -Pui</td></tr>
+<tr><td>Critical scenarios</td><td>mvn test -Psmoke</td></tr>
+<tr><td>Edge scenarios</td><td>mvn test -Pedge</td></tr>
+<tr><td>Firefox UI</td><td>mvn test -Pui &quot;-Dbrowser=firefox&quot;</td></tr>
+<tr><td>WebKit UI</td><td>mvn test -Pui &quot;-Dbrowser=webkit&quot;</td></tr>
+<tr><td>One class</td><td>mvn test &quot;-Dtest=CustomersApiTest&quot;</td></tr>
+<tr><td>One method</td><td>mvn test &quot;-Dtest=CustomersApiTest#eighteenthBirthdayAccepted&quot;</td></tr>
+<tr><td>Visible UI with one worker</td><td>mvn test -Pui &quot;-Dheadless=false&quot; &quot;-Dthreads=1&quot;</td></tr>
+<tr><td>Compile without execution</td><td>mvn test-compile &quot;-DskipTests&quot;</td></tr>
+</tbody></table></div>
+<p>PowerShell requires quoting the whole -D argument when it contains dots, spaces, or other shell-significant text. The examples use quoted values consistently.</p>
+<p>Profiles select groups by union: api, ui, smoke, or edge. A write group marks scenarios that can mutate a persistent QA environment. The exercise group is excluded by default. The lab group marks local HTML skill exercises; these also belong to ui and edge.</p>
+<p>Keep tests independent. A smoke run should not rely on a customer created by another test or a previous run. Run a whole class when learning data providers: each input row becomes a separate reported invocation.</p>
+<h3>5 Import into Eclipse or IntelliJ</h3>
+<p>In Eclipse, use File, Import, Maven, Existing Maven Projects and select banking-api/automation-java. Select JDK 17 for this project. Install TestNG support if your Eclipse distribution does not provide it. Run Maven test from the project or run testng.xml as a TestNG suite. The root banking application can remain a separate imported project.</p>
+<p>In IntelliJ, open the module pom.xml as a Maven project and select JDK 17. Prefer a Maven test run configuration for matching CI behavior. A direct TestNG run should use the automation-java directory as its working directory.</p>
+<p>Set a breakpoint inside registrationAndSearch, uiRegistrationPersistsThroughApi, or test().api(). Step from test to client/page object to the Playwright call. API bodies remain in memory; avoid printing authentication responses.</p>
+<p>The framework&#x27;s direct-IDE before-method check prevents write-tagged tests from mutating an external environment without opt-in. Use the supplied testng.xml to obtain group filtering and WriteGuard behavior identical to the Maven suite.</p>
+<h3>6 Configuration and existing QA</h3>
+<p>Configuration precedence is Java system property, environment variable, ignored config/local.properties, then code default. Maven forwards browser/headless defaults to Surefire; select those through the documented -D flags or scripts.</p>
+<div class="table-wrap"><table><thead><tr><th>Java property</th><th>Environment variable</th><th>Default</th></tr></thead><tbody>
+<tr><td>startApp</td><td>START_APP</td><td>true</td></tr>
+<tr><td>port</td><td>TEST_PORT</td><td>18080</td></tr>
+<tr><td>apiBaseUrl</td><td>API_BASE_URL</td><td>local origin on the test port</td></tr>
+<tr><td>uiBaseUrl</td><td>UI_BASE_URL</td><td>local origin on the test port</td></tr>
+<tr><td>username</td><td>TEST_USERNAME</td><td>disposable managed administrator</td></tr>
+<tr><td>password</td><td>TEST_PASSWORD</td><td>disposable managed password</td></tr>
+<tr><td>allowTestData</td><td>ALLOW_TEST_DATA</td><td>false externally; true for managed mode</td></tr>
+<tr><td>browser</td><td>BROWSER</td><td>chromium; prefer -Dbrowser</td></tr>
+<tr><td>headless</td><td>HEADLESS</td><td>true; prefer -Dheadless or script flag</td></tr>
+<tr><td>timeoutMs</td><td>TIMEOUT_MS</td><td>10000</td></tr>
+</tbody></table></div>
+<p>Copy config/qa.example.properties to config/local.properties for local external-QA configuration. That file is ignored by Git. Supply real test credentials through an approved secret store or your session environment. The suite requires a dedicated ADMIN test employee to provision prerequisites and verify privileged workflows.</p>
+<div class="code-label">powershell</div><pre><code>$env:START_APP = &quot;false&quot;
+$env:API_BASE_URL = &quot;https://qa.bankverse.example&quot;
+$env:UI_BASE_URL = &quot;https://qa.bankverse.example&quot;
+$env:TEST_USERNAME = &quot;dedicated-test-admin&quot;
+# Set TEST_PASSWORD through your approved secret mechanism.
+$env:ALLOW_TEST_DATA = &quot;false&quot;
+mvn test -Papi</code></pre>
+<p>The hostname above is an example, not a configured environment. Replace it with your QA origin. Base URLs must be HTTP(S) origins without embedded credentials, query strings, or path prefixes. The frontend calls relative API URLs, so its host must serve or proxy the backend endpoints.</p>
+<p>External mode does not start an app and does not create its first administrator. WriteGuard excludes write-tagged methods while ALLOW_TEST_DATA=false. Logging in still creates tokens, and read-only does not mean that every possible server audit or authentication side effect disappears.</p>
+<p>Set ALLOW_TEST_DATA=true only for a QA environment where persistent fixtures are allowed. Customer creation has no supported cleanup endpoint, and financial/audit records should not be deleted through ad hoc SQL. The role test deactivates its employee in finally; the employee row remains. Use an ephemeral QA deployment or your approved reset/retention process.</p>
+<h3>7 Read a UI test from top to bottom</h3>
+<p>Open tests/ui/CustomersUiTest.java and find uiRegistrationPersistsThroughApi. It performs a real cross-layer check:</p>
+<ol>
+<li>CustomerData.fresh creates unique synthetic values.</li>
+<li>test().signedInPage authenticates through HTTP and seeds the correct UI sessionStorage once.</li>
+<li>CustomersPage.open selects Customers and KYC.</li>
+<li>CustomersPage.register fills stable test-ID locators, starts a response wait before clicking submit, and verifies the 201 response.</li>
+<li>The API client retrieves the generated customer number.</li>
+<li>Contracts.customer checks required response fields and privacy.</li>
+<li>The test verifies the persisted fullName.</li>
+<li>BaseTest tears down all resources.</li>
+</ol>
+<p>The point of the response wait is synchronization. Do not click, sleep two seconds, and hope registration finished. A response predicate should match the specific endpoint and HTTP method. Web-first assertions wait for the DOM condition automatically.</p>
+<p>For login/logout behavior, use a blank test().page() plus LoginPage. Do not call signedInPage again after logout, because that helper intentionally logs the test back in.</p>
+<h3>8 Read an API test</h3>
+<p>Open tests/api/LedgerApiTest.java and repeatedDepositDoesNotDuplicateMoney. The fixture first completes an isolated customer/KYC/account flow through OnboardingFlow. It then deposits 125.50 using a UUID idempotency key, repeats the same request/key, checks the same transaction reference, and verifies the account balance is still 125.50.</p>
+<p>Asserting HTTP 201 alone would miss a duplicate deposit. Assert a business side effect: balance, transaction reference, or a relevant history count. Use BigDecimal.compareTo for currency assertions so 125.5 and 125.50 compare numerically without floating-point rounding.</p>
+<p>The reusedKeyReplaysOriginalAmount test documents current application behavior: a same-operation replay returns the original result even if the second payload changes the amount. It returns HTTP 201 with the original amount and does not add funds. The backend currently does not reject same-operation payload mismatch. A different operation using the same key returns 409. This distinction is explained in the edge catalog; it is not a guarantee of strict payload-fingerprint validation.</p>
+<h3>9 Add your first test</h3>
+<p>Start with unknown-email lookup in CustomersApiTest. Use the existing API client and contract helper:</p>
+<div class="code-label">java</div><pre><code>@Test(groups = {&quot;api&quot;, &quot;edge&quot;})
+public void unknownCustomerEmailReturns404() {
+  var customers = new CustomersClient(test().api());
+  var response = customers.byEmail(CustomerData.fresh().email());
+  Contracts.error(response, 404, &quot;CUSTOMER_NOT_FOUND&quot;);
+}</code></pre>
+<p>Add imports for CustomersClient, CustomerData, Contracts, and Test. Save under the module&#x27;s src/test/java/com/bank/qa/tests/api package. A class name must end in Test for Surefire&#x27;s default discovery.</p>
+<p>Run that method with mvn test &quot;-Dtest=YourClassTest#unknownCustomerEmailReturns404&quot;. Verify it fails if you deliberately change the expected status, then restore the correct assertion. This proves the test can detect a wrong outcome.</p>
+<p>For a mutation, include write in its groups. WriteGuard recognizes method-level groups; place tags on each method rather than only on the class. Do not use dependsOnMethods to chain customer creation and lookup as separate tests. Build prerequisites within the scenario or a reusable flow.</p>
+<h3>10 Add a new module cleanly</h3>
+<p>For cards, loans, payments, or transfers, add a domain client under api. Add a page object only for a UI surface that exists. Put reusable prerequisite sequences into flows. Generate new data per test and use explicit response contracts.</p>
+<p>Keep endpoint strings inside clients rather than duplicating them across tests. Keep CSS presentation details out of test logic. Keep business assertions visible in tests. A page object may wait until a screen is usable, but it should not silently approve a business workflow or catch failures just to continue.</p>
+<p>For a transfer test, create two independent active accounts, fund one through the API, initiate the transfer, verify both balances and references, then check replay behavior. Use a new idempotency key per logically new transfer. Do not automatically retry a failed transfer with a new key, because the first request may already have committed.</p>
+<h3>11 Learn Playwright interactively</h3>
+<p>Use the Inspector:</p>
+<div class="code-label">powershell</div><pre><code>$env:PWDEBUG = &quot;1&quot;
+mvn test &quot;-Dtest=AutomationLabTest#verificationInsideFrame&quot; &quot;-Dheadless=false&quot; &quot;-Dthreads=1&quot;
+Remove-Item Env:PWDEBUG</code></pre>
+<p>Set a breakpoint and call page.pause temporarily when practicing. Remove pauses before committing an automated test.</p>
+<p>Generate Java locator ideas with Codegen against an already running QA application:</p>
+<div class="code-label">powershell</div><pre><code>$env:PLAYWRIGHT_BROWSERS_PATH = &quot;$PWD/.browsers&quot;
+mvn test-compile exec:java &quot;-Dexec.mainClass=com.microsoft.playwright.CLI&quot; &quot;-Dexec.args=codegen --target=java http://localhost:8080&quot;</code></pre>
+<p>Codegen does not start the app. Use the actual QA address and interact only with test data. Generated code is a starting point: move selectors into page objects, replace fixed data, and add business assertions.</p>
+<h3>12 Diagnose a failed test</h3>
+<p>Read the first failing assertion in target/surefire-reports/&lt;browser&gt;/index.html or the XML report. Separate setup failures from test failures. A bootstrap/login failure usually concerns the environment or credentials; a Playwright timeout concerns an unmet locator/action condition; a contract failure identifies unexpected HTTP/body behavior.</p>
+<p>Inspect target/application.log for backend exceptions. Authenticated API tests include a correlation ID in their request headers and in failure output. Use that ID for the corresponding API calls when server logs include correlation metadata.</p>
+<p>Failed UI tests retain failure.png and trace.zip under target/artifacts/&lt;browser&gt;/&lt;unique-id&gt;. Use the trace to inspect action order, DOM snapshots, network timing, and screenshots.</p>
+<div class="code-label">powershell</div><pre><code>mvn test-compile exec:java &quot;-Dexec.mainClass=com.microsoft.playwright.CLI&quot; &quot;-Dexec.args=show-trace target/artifacts/chromium/ACTUAL-TEST-ID/trace.zip&quot;</code></pre>
+<p>Replace ACTUAL-TEST-ID with an existing directory. Java browser-context traces contain Playwright calls and snapshots; they do not record TestNG assertions with the same rich runner integration as TypeScript Playwright Test. Read the TestNG report for the assertion itself.</p>
+<p>Traces can contain access tokens, form values, and network data. Treat screenshots, traces, logs, and reports as restricted QA artifacts. The framework does not claim complete trace redaction. API traces are not enabled.</p>
+<h3>13 Practice failure evidence deliberately</h3>
+<p>An intentionally failing exercise is provided outside the default groups:</p>
+<div class="code-label">powershell</div><pre><code>mvn test &quot;-Dtest=FailureEvidenceExerciseTest&quot; &quot;-Dgroups=exercise&quot; &quot;-DexcludedGroups=&quot; &quot;-DresultsLabel=evidence-exercise&quot;</code></pre>
+<p>The expected result is one failed UI test and a non-zero Maven exit code. This is a learning exercise, not a passing acceptance run. Open its screenshot and trace, identify the deliberately wrong username expectation, and return to mvn test for normal coverage. The default suite and CI exclude exercise.</p>
+<h3>14 Edge-case learning route</h3>
+<p>Complete these labs in order: health/correlation; login and stale bearer; mandatory fields and data providers; exact eighteenth birthday; duplicate identity fields; UI/API persistence; iframe; popup; intercepted service failure; synthetic upload/download/native dialog; deposit replay and balances; role separation; failure evidence.</p>
+<p>For each lab, predict the result, run one method, inspect its source, change one input, explain the observed result, and restore or extend the test. Record whether it is real application coverage, mocked UI recovery coverage, or a local tool exercise.</p>
+<p>EDGE_CASE_CATALOG.md lists implemented scenarios, method names, expected outcomes, and additional exercises. Do not present proposed concurrency/security cases as already automated.</p>
+<h3>15 CI and operational limits</h3>
+<p>The repository&#x27;s playwright.yml now runs Java tests on Ubuntu in a three-browser matrix. Chromium runs API plus UI tests. Firefox and WebKit run UI tests. Each job installs OS browser dependencies and uploads Surefire reports, artifacts, and startup logs. There is no separately installed Node.js requirement.</p>
+<p>The workflow has not been verified on a hosted runner until your repository executes it. Browser/OS differences may require environment-specific investigation. Increase job timeout only after checking the cause.</p>
+<p>Local runs overwrite reports for the same browser and application.log; failed evidence directories have unique IDs. Copy a run&#x27;s artifacts before rerunning if you need a historical audit trail. CI retains per-job artifacts for seven days.</p>
+<p>This framework is an extensible acceptance baseline. It does not yet automate every banking module, every role permission, high-volume performance, full accessibility auditing, strict payload-fingerprint idempotency, or concurrent financial races. These belong in a broader quality strategy with application unit/integration tests and an isolated PostgreSQL environment.</p>
+<h3>16 Maintain the handbook and check the write guard</h3>
+<p>The handbook sources are Markdown files in docs plus two SVG diagrams and editable Mermaid sources. Rebuild the self-contained HTML after editing those sources:</p>
+<div class="code-label">powershell</div><pre><code>python scripts/build_handbook.py</code></pre>
+<p>Python is needed only to regenerate the handbook, not to run Java tests. The optional HandbookPreview Java utility checks local links, embedded diagrams, and viewport overflow and writes preview screenshots under target/docs-preview.</p>
+<p>A separate opt-in infrastructure probe verifies that WriteGuard excludes a write method in external mode. It does not start or contact an application:</p>
+<div class="code-label">powershell</div><pre><code>mvn test &quot;-Dtest=ExternalWriteGuardTest&quot; &quot;-Dgroups=guard&quot; &quot;-DexcludedGroups=&quot; &quot;-DstartApp=false&quot; &quot;-Dusername=guard-probe&quot; &quot;-Dpassword=guard-probe-not-a-real-credential&quot; &quot;-DresultsLabel=external-guard&quot;</code></pre>
+<p>Expected result: one read-only probe passes; the deliberately failing write method is removed before execution. The strings above are dummy configuration values and are never used for login. The probe belongs to exercise and is excluded from the normal suite.</p>
+<p>Use -DresultsLabel with a descriptive run name to retain a separate report directory, such as acceptance-chromium. Failure evidence already uses unique test IDs; do not post evidence publicly.</p></article>
+<article id="edge-cases"><h2>Edge-case catalog and practice route</h2>
+<p>The default suite contains 45 API invocations and 16 UI invocations per browser. Data-provider rows count separately. Local tool labs are included in UI execution and clearly labeled below. The intentionally failing exercise is excluded by default.</p>
+<h3>Implemented API cases</h3>
+<div class="table-wrap"><table><thead><tr><th>ID</th><th>Source and method</th><th>Edge or business check</th><th>Expected result</th></tr></thead><tbody>
+<tr><td>API-01</td><td>HealthAuthTest.healthAndCorrelation</td><td>Health endpoint and caller correlation header</td><td>200, exact health text, matching X-Correlation-ID</td></tr>
+<tr><td>API-02</td><td>HealthAuthTest.validLogin</td><td>Valid ADMIN credentials</td><td>Access token and ADMIN role</td></tr>
+<tr><td>API-03</td><td>HealthAuthTest.invalidPassword</td><td>Incorrect password</td><td>401 AUTHENTICATION_FAILED</td></tr>
+<tr><td>API-04</td><td>HealthAuthTest.missingAuthentication</td><td>Protected customer endpoint without token</td><td>401 AUTHENTICATION_REQUIRED</td></tr>
+<tr><td>API-05</td><td>HealthAuthTest.malformedBearer</td><td>Malformed bearer token</td><td>401 INVALID_ACCESS_TOKEN</td></tr>
+<tr><td>API-06</td><td>HealthAuthTest.staleBearerDoesNotBlockLogin</td><td>Old Authorization header on a new login</td><td>Successful login</td></tr>
+<tr><td>API-07</td><td>HealthAuthTest.framingPolicy</td><td>Embedded training page versus main page</td><td>SAMEORIGIN on frame; DENY on main</td></tr>
+<tr><td>API-08</td><td>CustomersApiTest.registrationAndSearch</td><td>Fresh registration, number/PAN/email/phone lookups, case/whitespace normalization, response privacy</td><td>201 then 200; same customer number; no PAN/Aadhaar/phone/email in response</td></tr>
+<tr><td>API-09</td><td>CustomersApiTest.invalidCustomerFields</td><td>Eleven rows: blank/short/long/nonalphabetic name, bad/oversized email, short/invalid-prefix phone, bad PAN, bad Aadhaar, future DOB</td><td>400 INVALID_CUSTOMER</td></tr>
+<tr><td>API-10</td><td>CustomersApiTest.omittedMandatoryField</td><td>Six rows omitting each mandatory field</td><td>400 INVALID_CUSTOMER</td></tr>
+<tr><td>API-11</td><td>CustomersApiTest.eighteenthBirthdayAccepted</td><td>DOB exactly 18 years before the application day</td><td>201</td></tr>
+<tr><td>API-12</td><td>CustomersApiTest.oneDayUnderEighteenRejected</td><td>DOB one day younger than 18</td><td>400 INVALID_CUSTOMER</td></tr>
+<tr><td>API-13</td><td>CustomersApiTest.maximumNameAccepted</td><td>Exactly 100 alphabetic characters</td><td>201</td></tr>
+<tr><td>API-14</td><td>CustomersApiTest.duplicateIdentityRejected</td><td>Four rows independently duplicating PAN/email/phone/Aadhaar</td><td>409 CUSTOMER_ALREADY_EXISTS</td></tr>
+<tr><td>API-15</td><td>CustomersApiTest.invalidReference</td><td>Malformed customer number</td><td>400 INVALID_CUSTOMER</td></tr>
+<tr><td>API-16</td><td>CustomersApiTest.unknownEmail</td><td>Random valid email that does not exist</td><td>404 CUSTOMER_NOT_FOUND</td></tr>
+<tr><td>API-17</td><td>CustomersApiTest.malformedJson</td><td>Truncated JSON document</td><td>400 INVALID_REQUEST</td></tr>
+<tr><td>API-18</td><td>LedgerApiTest.repeatedDepositDoesNotDuplicateMoney</td><td>Same deposit and same idempotency key twice</td><td>Same transaction reference; balance increases once</td></tr>
+<tr><td>API-19</td><td>LedgerApiTest.reusedKeyReplaysOriginalAmount</td><td>Same operation/key with changed second amount</td><td>Current policy: original transaction/amount returned with 201; balance unchanged</td></tr>
+<tr><td>API-20</td><td>LedgerApiTest.idempotencyKeyCannotChangeOperation</td><td>Deposit key reused for withdrawal</td><td>409 TRANSACTION_INVALID_STATE; balance unchanged</td></tr>
+<tr><td>API-21</td><td>LedgerApiTest.insufficientFundsPreserveBalance</td><td>Withdraw from zero-balance active account</td><td>409 TRANSACTION_INVALID_STATE; zero balance remains</td></tr>
+<tr><td>API-22</td><td>LedgerApiTest.rejectInvalidAmounts</td><td>Three rows: zero, negative, more than two decimals</td><td>400 INVALID_TRANSACTION</td></tr>
+<tr><td>API-23</td><td>LedgerApiTest.freezePreventsDeposit</td><td>Deposit into a frozen account</td><td>409 TRANSACTION_INVALID_STATE</td></tr>
+<tr><td>API-24</td><td>LedgerApiTest.pendingKycCannotOpenAccount</td><td>Open account before customer activation/KYC</td><td>400 INVALID_CUSTOMER</td></tr>
+<tr><td>API-25</td><td>RoleAccessTest.customerOfficerCannotOperateAccountsOrAdministerStaff</td><td>A fresh CUSTOMER_OFFICER reads customer domain but accesses accounts/admin</td><td>Customer validation reachable; protected modules return 403 ACCESS_DENIED; employee deactivated afterward</td></tr>
+</tbody></table></div>
+<p>API-09 expands into 11 tests, API-10 into six, API-14 into four, and API-22 into three. The other 21 cases execute once: 45 API invocations in total.</p>
+<p>DOB boundaries use LocalDate.now in the test JVM. Keep the QA application and test runner on the same business date/timezone for those cases; across-midnight or differently zoned deployments require an injected business clock. Managed mode runs them on the same host.</p>
+<h3>Implemented UI cases</h3>
+<div class="table-wrap"><table><thead><tr><th>ID</th><th>Source and method</th><th>Skill or scenario</th><th>Coverage type</th></tr></thead><tbody>
+<tr><td>UI-01</td><td>LoginUiTest.signInAndLogoutStayEffectiveAfterReload</td><td>Real login/logout, cleared sessionStorage, reload</td><td>Real application</td></tr>
+<tr><td>UI-02</td><td>LoginUiTest.invalidCredentialsShowFeedback</td><td>Invalid-login error, form remains available</td><td>Real application</td></tr>
+<tr><td>UI-03</td><td>LoginUiTest.keyboardEnterSubmitsLogin</td><td>Keyboard submission</td><td>Real application</td></tr>
+<tr><td>UI-04</td><td>LoginUiTest.authenticationSurvivesReloadButNotNewContext</td><td>Session reload persistence and BrowserContext isolation</td><td>Real application</td></tr>
+<tr><td>UI-05</td><td>CustomersUiTest.uiRegistrationPersistsThroughApi</td><td>Create in UI and verify via API</td><td>Real hybrid scenario</td></tr>
+<tr><td>UI-06</td><td>CustomersUiTest.apiCreatedCustomerFoundInUi</td><td>API setup, UI lookup and rendered result</td><td>Real hybrid scenario</td></tr>
+<tr><td>UI-07</td><td>CustomersUiTest.duplicateRegistrationShowsBusinessError</td><td>Real backend conflict and UI error modal</td><td>Real application</td></tr>
+<tr><td>UI-08</td><td>CustomersUiTest.requiredFieldBlocksSubmission</td><td>Native required-field validity and absence of result</td><td>Real UI validation</td></tr>
+<tr><td>UI-09</td><td>CustomersUiTest.serviceFailureShowsRecoverableDialog</td><td>route.fulfill with synthetic 503, feedback and modal dismissal</td><td>Mocked UI recovery</td></tr>
+<tr><td>UI-10</td><td>AutomationLabTest.selectsRadiosAndCheckboxes</td><td>Single/multi-select, radio, checkbox, live feedback</td><td>Existing app training lab</td></tr>
+<tr><td>UI-11</td><td>AutomationLabTest.verificationInsideFrame</td><td>FrameLocator and embedded controls</td><td>Existing app training lab</td></tr>
+<tr><td>UI-12</td><td>AutomationLabTest.popupLifecycle</td><td>Register popup wait before click, use/close popup, return</td><td>Existing app training lab</td></tr>
+<tr><td>UI-13</td><td>AutomationLabTest.customBankingErrorDialog</td><td>Accessible custom error modal</td><td>Existing app training lab</td></tr>
+<tr><td>UI-14</td><td>ToolPracticeTest.uploadSyntheticDocumentInLocalLab</td><td>FilePayload upload without external fixture file</td><td>Local HTML tool lab</td></tr>
+<tr><td>UI-15</td><td>ToolPracticeTest.nativeConfirmDialogInLocalLab</td><td>Register dialog listener before click, dismiss confirm</td><td>Local HTML tool lab</td></tr>
+<tr><td>UI-16</td><td>ToolPracticeTest.downloadCsvAndInspectBytesInLocalLab</td><td>waitForDownload, filename and content</td><td>Local HTML tool lab</td></tr>
+</tbody></table></div>
+<p>The local HTML upload/download/dialog labs do not demonstrate application KYC upload or bank-statement export. They deliberately use page.setContent to learn Playwright APIs without inventing unsupported application features.</p>
+<h3>Exercises to perform hands-on</h3>
+<div class="table-wrap"><table><thead><tr><th>Stage</th><th>Exercise</th><th>How to run</th><th>What to explain</th></tr></thead><tbody>
+<tr><td>1</td><td>Health and correlation</td><td>mvn test &quot;-Dtest=HealthAuthTest#healthAndCorrelation&quot;</td><td>APIRequestContext can work without a browser</td></tr>
+<tr><td>2</td><td>Customer boundaries</td><td>mvn test &quot;-Dtest=CustomersApiTest#invalidCustomerFields&quot;</td><td>One DataProvider row produces one invocation</td></tr>
+<tr><td>3</td><td>Birthday edge</td><td>mvn test &quot;-Dtest=CustomersApiTest#eighteenthBirthdayAccepted&quot;</td><td>Why exact boundary values matter</td></tr>
+<tr><td>4</td><td>Real hybrid check</td><td>mvn test &quot;-Dtest=CustomersUiTest#uiRegistrationPersistsThroughApi&quot;</td><td>UI success plus persisted API state</td></tr>
+<tr><td>5</td><td>Frame and popup</td><td>mvn test &quot;-Dtest=AutomationLabTest&quot; &quot;-Dheadless=false&quot; &quot;-Dthreads=1&quot;</td><td>Frame context versus separate Page</td></tr>
+<tr><td>6</td><td>UI service failure</td><td>mvn test &quot;-Dtest=CustomersUiTest#serviceFailureShowsRecoverableDialog&quot;</td><td>Network mocking tests UI recovery, not backend availability</td></tr>
+<tr><td>7</td><td>File and dialog APIs</td><td>mvn test &quot;-Dtest=ToolPracticeTest&quot;</td><td>Synthetic local lab versus banking coverage</td></tr>
+<tr><td>8</td><td>Money replay</td><td>mvn test &quot;-Dtest=LedgerApiTest#repeatedDepositDoesNotDuplicateMoney&quot;</td><td>Why reference and balance assertions are necessary</td></tr>
+<tr><td>9</td><td>Role boundary</td><td>mvn test &quot;-Dtest=RoleAccessTest&quot;</td><td>A hidden menu is not sufficient authorization proof</td></tr>
+<tr><td>10</td><td>Evidence practice</td><td>Select FailureEvidenceExerciseTest with exercise group and no exclusions</td><td>How a genuine failing run produces screenshots/trace and non-zero exit</td></tr>
+</tbody></table></div>
+<h3>Additional cases to implement next</h3>
+<p>These are proposed exercises, not executed coverage. Confirm the product contract before deciding expected statuses.</p>
+<div class="table-wrap"><table><thead><tr><th>Area</th><th>Proposed exercise</th><th>Design guidance</th></tr></thead><tbody>
+<tr><td>Financial concurrency</td><td>Two simultaneous withdrawals against limited balance</td><td>Separate Playwright instance on each thread; check final balance and ledger invariants on PostgreSQL</td></tr>
+<tr><td>Idempotency race</td><td>Concurrent identical keys</td><td>Verify one business effect; document how duplicate in-flight requests are handled</td></tr>
+<tr><td>Strict idempotency</td><td>Same key, different account or amount</td><td>Current implementation replays same-operation result; agree on payload fingerprint/conflict policy before tightening assertions</td></tr>
+<tr><td>Currency</td><td>Cross-currency transfer</td><td>Check documented rejection and unchanged source/destination balances</td></tr>
+<tr><td>Boundary money</td><td>Smallest permitted amount, large amount, decimal precision</td><td>Use BigDecimal, not double; agree on maximum monetary limits</td></tr>
+<tr><td>Workflow</td><td>Closing nonzero account, repeated freeze/unfreeze, invalid KYC order</td><td>Assert status, structured code, and unchanged state</td></tr>
+<tr><td>Authentication</td><td>Expired JWT, tampered signature, refresh-token rotation/reuse</td><td>Obtain controlled fixtures without storing signing keys or tokens in reports</td></tr>
+<tr><td>Authorization</td><td>Full banking role-by-endpoint matrix</td><td>Create least-privilege users and verify API restrictions independently of menu visibility</td></tr>
+<tr><td>Customer data</td><td>Duplicate normalized email/PAN, Unicode names, leap-day DOB</td><td>Establish intended Unicode and age policy before assuming support</td></tr>
+<tr><td>UI resilience</td><td>Delayed response, request abort, duplicate-click prevention</td><td>Use routing/events; avoid fixed sleeps and production backend disruption</td></tr>
+<tr><td>UI accessibility</td><td>Keyboard focus on custom dialogs and aria announcements</td><td>Define accessible behavior and add focused assertions</td></tr>
+<tr><td>Browser session</td><td>Expiry during navigation, browser back after logout</td><td>Distinguish cached DOM appearance from successful protected API access</td></tr>
+<tr><td>Negative HTTP</td><td>Missing idempotency header, wrong content type, unsupported method</td><td>Check application contract; framework errors may differ from domain validation errors</td></tr>
+<tr><td>Report retention</td><td>CI artifact access and expiration</td><td>Verify repository permissions and retention policy in the actual hosted environment</td></tr>
+</tbody></table></div></article>
+<article id="demo"><h2>Demo script for the Java UI and API framework</h2>
+<p>Use this as a 15-minute walkthrough. Run browser installation before the meeting. The main story is a single Java acceptance framework with separate UI/API abstractions, isolated data, and visible business assertions.</p>
+<h3>Before the demo</h3>
+<p>Open docs/handbook.html, the architecture diagram, and your IDE. Verify JDK 17 and Maven. Run the suite once so dependency downloads do not consume presentation time. Keep all targets on the disposable managed environment. Close other acceptance runs that own port 18080.</p>
+<p>Have these source files ready: pom.xml, BaseTest, TestSession, CustomersClient, CustomersPage, CustomerData, CustomersUiTest, LedgerApiTest, and the TestNG HTML report.</p>
+<h3>Minutes 0 to 2 Explain the architecture</h3>
+<p>Say: &quot;We use Playwright Java for browser and HTTP automation, TestNG for lifecycle and data-driven tests, and Maven Surefire for execution and reports. UI tests use page objects. API tests use domain clients. Both share configuration, isolated data factories, contracts, and evidence handling.&quot;</p>
+<p>Point to the diagram from entry point to per-test session, then split into UI and API paths. Explain that APIRequestContext does not require launching a browser.</p>
+<p>Say: &quot;Playwright Java objects remain on the thread that created them. Each invocation owns its session, and we run independent classes on two threads. This avoids sharing a Page or API context across workers.&quot;</p>
+<h3>Minutes 2 to 4 Show execution lifecycle</h3>
+<p>Point to the execution flowchart. Explain managed versus external mode. Managed mode starts the real application with H2 on a separate local port, verifies health, creates a disposable administrator, and stops owned processes afterward. External mode expects a provisioned QA employee and excludes write tests without explicit opt-in.</p>
+<p>Show RunConfig and WriteGuard. Explain that configuration is validated before testing and secrets are ignored by Git.</p>
+<h3>Minutes 4 to 6 Run an API edge case</h3>
+<p>Run:</p>
+<div class="code-label">powershell</div><pre><code>mvn test &quot;-Dtest=CustomersApiTest#invalidCustomerFields&quot;</code></pre>
+<p>Open the DataProvider while the run executes. Explain why name length 101, invalid phone prefix, malformed PAN, and future DOB produce separate reported cases. Show that assertions check structured error codes rather than only success/failure.</p>
+<p>Open Contracts.customer and point out privacy assertions excluding PAN/Aadhaar/contact fields from customer responses.</p>
+<h3>Minutes 6 to 9 Demonstrate the hybrid scenario</h3>
+<p>Run:</p>
+<div class="code-label">powershell</div><pre><code>mvn test &quot;-Dtest=CustomersUiTest#uiRegistrationPersistsThroughApi&quot; &quot;-Dheadless=false&quot; &quot;-Dthreads=1&quot;</code></pre>
+<p>Walk through fresh data, API authentication, page-object navigation, form submission, the response wait, and the final API lookup. Explain why a success toast alone would not prove database persistence.</p>
+<p>Say: &quot;We seed sessionStorage once for scenarios whose purpose is customer behavior. Separate tests use the real login form to validate authentication and logout. A new browser context has no prior session.&quot;</p>
+<h3>Minutes 9 to 11 Show Playwright-specific interactions</h3>
+<p>Run AutomationLabTest in headed mode or open its passing report. Point out selectOption, check, frameLocator, waitForPopup, and custom modal assertions.</p>
+<p>Open serviceFailureShowsRecoverableDialog. Explain that the 503 is fulfilled at the browser network boundary and verifies UI recovery. It is not a backend availability test. Mention that local upload/download/dialog exercises are marked as tool labs.</p>
+<h3>Minutes 11 to 13 Explain financial assertions</h3>
+<p>Open repeatedDepositDoesNotDuplicateMoney. Show that the same idempotency key returns the same reference and that the balance increases once. Open idempotencyKeyCannotChangeOperation and explain the 409 branch.</p>
+<p>State the current implementation precisely: &quot;A replay of the same operation uses the original result even if the second amount differs. The test verifies that the changed amount is not applied. Strict payload-mismatch rejection is a separate product decision.&quot;</p>
+<p>Explain that OnboardingFlow creates fresh KYC-approved accounts for each financial scenario, avoiding dependence on previous test runs.</p>
+<h3>Minutes 13 to 15 Show evidence and CI</h3>
+<p>Open target/surefire-reports/chromium/index.html. Point out data-provider invocations, method names, and failure details. If demonstrating failure capture, use the explicitly excluded FailureEvidenceExerciseTest rather than editing passing business expectations during the presentation.</p>
+<p>Show the CI matrix: Chromium executes API plus UI; Firefox and WebKit execute UI. Each job has its own disposable database and uploads reports. Explain that release confidence also requires external-mode execution against isolated PostgreSQL QA.</p>
+<p>End by showing where to add a test: scenario in tests, endpoint action in api, UI action in pages, prerequisites in flows, reusable response checks in assertions, and unique data in data.</p>
+<h3>Questions you may receive</h3>
+<div class="table-wrap"><table><thead><tr><th>Question</th><th>Suggested explanation</th></tr></thead><tbody>
+<tr><td>Why Java?</td><td>It matches the team&#x27;s Java/Maven skill set and existing application tooling while using Playwright for both HTTP and UI.</td></tr>
+<tr><td>Why TestNG?</td><td>It supplies groups, lifecycle hooks, DataProvider, parallel execution, and familiar HTML/XML outputs.</td></tr>
+<tr><td>Is there a separate REST library?</td><td>No. HTTP requests use Playwright APIRequestContext.</td></tr>
+<tr><td>Why separate Maven module?</td><td>Browser/testing dependencies do not become application runtime dependencies.</td></tr>
+<tr><td>Why no automatic retries?</td><td>We want failures visible, especially for state-changing banking operations. A retry with a new key can duplicate a committed request.</td></tr>
+<tr><td>Does a passing suite prove every module works?</td><td>No. The catalog lists implemented coverage and the backlog separately.</td></tr>
+<tr><td>Can we use PostgreSQL?</td><td>Yes, point external mode at an isolated deployed QA instance. The default managed H2 run is faster but does not prove database parity.</td></tr>
+<tr><td>Can we run TestNG methods in parallel?</td><td>The implementation owns per-invocation sessions; the validated configuration is class-level parallelism. Revalidate any scheduling change and keep Playwright calls on their owner thread.</td></tr>
+<tr><td>Are traces safe to share publicly?</td><td>No. They can contain network/session data and should remain restricted QA artifacts.</td></tr>
+<tr><td>Where is Playwright Test&#x27;s reporter?</td><td>That runner is TypeScript-specific. Java uses TestNG/Surefire reports and browser-context trace capture.</td></tr>
+</tbody></table></div></article>
+<article id="validation"><h2>Validation record</h2>
+<p>Validated on Windows with JDK 17 and Maven on 19 October 2026.</p>
+<div class="table-wrap"><table><thead><tr><th>Run</th><th>Result</th></tr></thead><tbody>
+<tr><td>Maven Java compilation</td><td>Passed</td></tr>
+<tr><td>Default API plus Chromium UI suite</td><td>61 passed, zero failed, zero skipped</td></tr>
+<tr><td>Firefox UI suite</td><td>16 passed, zero failed, zero skipped</td></tr>
+<tr><td>WebKit UI suite</td><td>16 passed, zero failed, zero skipped</td></tr>
+<tr><td>Combined acceptance invocations</td><td>93 passed</td></tr>
+<tr><td>PowerShell smoke entry point</td><td>7 passed</td></tr>
+<tr><td>External write guard probe</td><td>Passed; one write method excluded and one read-only probe executed without contacting an application</td></tr>
+<tr><td>Failure evidence exercise</td><td>Expected single failure, nonzero exit, screenshot and trace verified in a separate report directory</td></tr>
+<tr><td>Offline handbook QA</td><td>Desktop/mobile overflow and chapter-link checks passed; both embedded diagrams visually inspected</td></tr>
+<tr><td>Managed application lifecycle</td><td>Automatic startup and process cleanup completed for each run</td></tr>
+<tr><td>Existing application code</td><td>No additional business-code changes were required for the Java migration</td></tr>
+</tbody></table></div>
+<p>The 61-invocation default run consists of 45 API invocations and 16 UI invocations. DataProvider rows count separately. Three UI cases use synthetic local HTML to teach uploads, downloads, and native dialogs.</p>
+<p>The first expanded run exposed test-expectation differences from the current application contract. Pending-KYC account creation returns 400 INVALID_CUSTOMER. Same-operation idempotency replay returns the original result with HTTP 201 even if the second amount differs. Final tests document those behaviors and separately verify a 409 when the key is reused across deposit and withdrawal.</p>
+<p>The final full Chromium report is under target/surefire-reports/acceptance-chromium. Firefox and WebKit reports are under their corresponding browser folders. The smoke report is in chromium; the intentional failure is in evidence-exercise; the write-guard probe is in external-guard. These are local results. The GitHub Actions workflow is configured but has not run on a hosted runner in this session. External PostgreSQL coverage, complete role matrices, and concurrency races remain future coverage.</p></article></main></div><footer>BankVerse Java automation | Repository documentation | 19 October 2026</footer></body></html>

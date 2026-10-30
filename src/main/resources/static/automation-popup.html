@@ -1,0 +1,8 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>BankVerse | Popup Exercise</title>
+  <style>body{font-family:Arial,sans-serif;max-width:620px;margin:36px auto;padding:0 20px;color:#102a4c}main{border:1px solid #d8e1ee;border-radius:10px;padding:28px;box-shadow:0 8px 24px #dbe5f2}label{display:block;font-weight:700;margin:14px 0}input,select,button{display:block;width:100%;box-sizing:border-box;padding:10px;margin-top:6px}button{background:#175cd3;border:0;border-radius:5px;color:#fff;font-weight:700;cursor:pointer}#popup-status{padding:10px;background:#ecfdf3;border-left:4px solid #039855}</style>
+</head>
+<body><main><p>BANKVERSE AUTOMATION LAB</p><h1>Popup window exercise</h1><p>Use the window handle / page event from Selenium or Playwright, then return to the main console.</p><label>Case priority<select id="popup-priority" data-testid="popup-priority"><option>Normal</option><option>High</option><option>Critical</option></select></label><label>Case reference<input id="popup-reference" data-testid="popup-reference" placeholder="CASE-000001"></label><button id="popup-confirm" data-testid="popup-confirm" type="button">Confirm popup action</button><p id="popup-status" data-testid="popup-status" role="status">Awaiting confirmation.</p></main><script>document.getElementById('popup-confirm').onclick=()=>document.getElementById('popup-status').textContent='Popup action confirmed. You can close this window.';</script></body>
+</html>

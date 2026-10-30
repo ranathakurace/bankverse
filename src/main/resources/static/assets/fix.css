@@ -1,0 +1,24 @@
+/* Must override component display declarations when JavaScript toggles hidden. */
+[hidden] { display: none !important; }
+
+/* Automation training controls and enterprise feedback surfaces. */
+.automation-lab { margin-top: 1.5rem; }
+.automation-lab-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; align-items: start; }
+.automation-lab-grid label, .choice-fieldset { display: grid; gap: .45rem; font-weight: 650; }
+.automation-lab-grid .wide { grid-column: 1 / -1; }
+.automation-lab select[multiple] { min-height: 9rem; }
+.automation-lab small { color: #64748b; font-weight: 400; }
+.choice-fieldset { border: 1px solid #cbd5e1; border-radius: .6rem; padding: .75rem 1rem; }
+.choice-fieldset legend { padding: 0 .25rem; font-weight: 700; }
+.choice-fieldset label { display: flex; align-items: center; gap: .45rem; font-weight: 500; margin-top: .4rem; }
+.automation-actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.25rem; }
+.automation-alert { margin: 1rem 0 0; padding: .75rem 1rem; border-left: 4px solid #2563eb; background: #eff6ff; color: #1e3a8a; border-radius: .3rem; }
+.frame-card { margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid #e2e8f0; }
+.frame-card h4 { margin: 0; }
+.frame-card iframe { width: 100%; min-height: 250px; border: 1px solid #cbd5e1; border-radius: .6rem; background: #fff; }
+.toast-region { position: fixed; right: 1.5rem; top: 1.5rem; z-index: 1200; width: min(26rem, calc(100vw - 3rem)); display: grid; gap: .75rem; }
+.toast { padding: 1rem 1.1rem; color: #fff; border-radius: .6rem; box-shadow: 0 12px 30px rgba(15,23,42,.24); font-weight: 600; }
+.toast.success { background: #047857; }.toast.warning { background: #b45309; }.toast.error { background: #b91c1c; }
+.banking-error-modal { border-top: 5px solid #dc2626; }
+.banking-error-modal h3 { color: #991b1b; }
+@media (max-width: 720px) { .automation-actions { flex-direction: column; }.automation-actions button { width: 100%; }.toast-region { right: 1rem; top: 1rem; width: calc(100vw - 2rem); } }

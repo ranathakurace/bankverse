@@ -1,51 +1,60 @@
 package com.bank.api.controller;
 
+import com.bank.api.dto.EmployeeCreateRequest;
+import com.bank.api.dto.LoginRequest;
+import com.bank.api.dto.PasswordChangeRequest;
+import com.bank.api.dto.RefreshTokenRequest;
+import com.bank.api.exception.AuthenticationException;
+import com.bank.api.exception.EmployeeAdministrationException;
+import com.bank.api.model.Employee;
+import com.bank.api.security.BankingRole;
 import com.bank.api.security.JwtUtil;
 import com.bank.api.security.RefreshTokenStore;
+import com.bank.api.service.EmployeeService;
 import io.jsonwebtoken.Claims;
+import java.security.Principal;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.HashMap;
-import java.util.Map;
+import jakarta.validation.Valid;
 
 @RestController
 public class AuthController {
+    private final EmployeeService employees;
+    private final PasswordEncoder passwordEncoder;
+    private final JwtUtil jwtUtil;
+
+    public AuthController(EmployeeService employees, PasswordEncoder passwordEncoder, JwtUtil jwtUtil) {
+        this.employees = employees;
+        this.passwordEncoder = passwordEncoder;
+        this.jwtUtil = jwtUtil;
+    }
+
+    @GetMapping("/auth/bootstrap/status")
+    public Map<String, Boolean> bootstrapStatus() { return java.util.Collections.singletonMap("bootstrapRequired", employees.bootstrapRequired()); }
+
+    @PostMapping("/auth/bootstrap")
+    public Object bootstrap(@RequestBody EmployeeCreateRequest request) { return employees.bootstrap(request); }
 
     /**
      * LOGIN API
      * Returns Access Token + Refresh Token
      */
     @PostMapping("/auth/login")
-    public Map<String, String> login(@RequestBody Map<String, String> request) {
+    public Map<String, Object> login(@Valid @RequestBody LoginRequest request) {
 
-        String username = request.get("username");
-        String password = request.get("password");
-
-        String role;
-
-        // Hardcoded users (for learning & testing)
-        if ("user".equals(username) && "password".equals(password)) {
-            role = "ROLE_USER";
-        } else if ("admin".equals(username) && "password".equals(password)) {
-            role = "ROLE_ADMIN";
-        } else {
-            throw new RuntimeException("Invalid credentials");
-        }
-
-        // Generate tokens
-        String accessToken = JwtUtil.generateToken(username, role);
-        String refreshToken = JwtUtil.generateRefreshToken(username);
-
-        // Store refresh token
-        RefreshTokenStore.save(username, refreshToken);
-
-        Map<String, String> response = new HashMap<>();
-        response.put("accessToken", accessToken);
-        response.put("refreshToken", refreshToken);
-
-        return response;
+        if (employees.bootstrapRequired()) throw new AuthenticationException("Initial administrator setup is required.");
+        Employee employee;
+        try { employee = employees.findActive(request.getUsername()); }
+        catch (EmployeeAdministrationException exception) { throw new AuthenticationException("Invalid credentials."); }
+        if (!passwordEncoder.matches(request.getPassword(), employee.getPasswordHash())) throw new AuthenticationException("Invalid credentials.");
+        return authenticationResponse(employee);
     }
 
     /**
@@ -53,12 +62,12 @@ public class AuthController {
      * Returns new Access Token
      */
     @PostMapping("/auth/refresh")
-    public Map<String, String> refresh(@RequestBody Map<String, String> request) {
+    public Map<String, Object> refresh(@Valid @RequestBody RefreshTokenRequest request) {
 
-        String refreshToken = request.get("refreshToken");
+        String refreshToken = request.getRefreshToken();
 
         try {
-            Claims claims = JwtUtil.validateToken(refreshToken);
+            Claims claims = jwtUtil.validateRefreshToken(refreshToken);
             String username = claims.getSubject();
 
             String storedToken = RefreshTokenStore.get(username);
@@ -67,18 +76,28 @@ public class AuthController {
                 throw new RuntimeException("Invalid refresh token");
             }
 
-            // NOTE: Role would come from DB in real apps
-            String role = username.equals("admin") ? "ROLE_ADMIN" : "ROLE_USER";
-
-            String newAccessToken = JwtUtil.generateToken(username, role);
-
-            Map<String, String> response = new HashMap<>();
-            response.put("accessToken", newAccessToken);
-
-            return response;
+            return authenticationResponse(employees.findActive(username));
 
         } catch (Exception e) {
-            throw new RuntimeException("Refresh token expired or invalid");
+            throw new AuthenticationException("Refresh token expired or invalid.");
         }
+    }
+
+    @PostMapping("/auth/password")
+    public Map<String, String> changePassword(@RequestBody PasswordChangeRequest request, Principal principal) {
+        employees.changePassword(principal.getName(), request.getCurrentPassword(), request.getNewPassword());
+        return java.util.Collections.singletonMap("message", "Password changed successfully. Please sign in again.");
+    }
+
+    private Map<String, Object> authenticationResponse(Employee employee) {
+        Set<String> roles = employee.getRoles().stream().map(BankingRole::name).collect(Collectors.toSet());
+        Set<String> authorities = roles.stream().map(role -> "ROLE_" + role).collect(Collectors.toSet());
+        String accessToken = jwtUtil.generateToken(employee.getUsername(), authorities);
+        String refreshToken = jwtUtil.generateRefreshToken(employee.getUsername());
+        RefreshTokenStore.save(employee.getUsername(), refreshToken);
+        Map<String, Object> response = new HashMap<>();
+        response.put("accessToken", accessToken); response.put("refreshToken", refreshToken);
+        response.put("username", employee.getUsername()); response.put("roles", roles);
+        return response;
     }
 }
