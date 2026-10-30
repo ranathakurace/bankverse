@@ -11,6 +11,7 @@ import com.bank.api.repository.AccountRepository;
 import java.math.BigDecimal;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.atomic.AtomicInteger;
 import org.testng.annotations.Test;
 
 class TransferServiceTest {
@@ -18,9 +19,11 @@ class TransferServiceTest {
     @Test
     void rejectsSameAccountEvenWhenLongIdentifiersAreDifferentObjects() {
         AccountRepository repository = mock(AccountRepository.class);
-        Account source = account(new Long(1000L));
-        Account destination = account(new Long(1000L));
-        when(repository.findById(1000L)).thenReturn(Optional.of(source), Optional.of(destination));
+        Account source = account(Long.valueOf(1000L));
+        Account destination = account(Long.valueOf(1000L));
+        AtomicInteger lookupCount = new AtomicInteger();
+        when(repository.findById(1000L)).thenAnswer(invocation -> Optional.of(
+                lookupCount.getAndIncrement() == 0 ? source : destination));
 
         TransferRequest request = new TransferRequest();
         request.setFromAccountId(1000);
