@@ -1,0 +1,9 @@
+FROM jenkins/jenkins:lts-jdk17
+
+# The controller needs only the Docker CLI. The Docker daemon remains on the
+# Ubuntu host and is exposed to this learning-only controller through its socket.
+USER root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends docker.io \
+    && rm -rf /var/lib/apt/lists/*
+USER jenkins
