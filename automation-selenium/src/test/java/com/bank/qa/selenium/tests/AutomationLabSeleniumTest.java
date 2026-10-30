@@ -2,37 +2,34 @@ package com.bank.qa.selenium.tests;
 
 import com.bank.qa.selenium.core.BaseUiTest;
 import com.bank.qa.selenium.pages.AutomationLabPage;
-import java.time.Instant;
-import org.openqa.selenium.remote.RemoteWebDriver;
 import org.testng.annotations.Test;
-
 import static org.testng.Assert.*;
 
 public final class AutomationLabSeleniumTest extends BaseUiTest {
     @Test(groups = {"smoke", "regression"})
     public void nativeControlsAndAlert() {
-        String execution = "nativeControlsAndAlert"
-                + " thread=" + Thread.currentThread().getId()
-                + " session=" + ((RemoteWebDriver) driver).getSessionId();
+        var lab = new AutomationLabPage(driver, wait);
+        lab.setRisk("HIGH");
+        assertEquals(lab.risk(), "HIGH");
+        lab.setRisk("LOW");
+        assertEquals(lab.risk(), "LOW");
+    }
 
-        System.out.println("START " + execution + " at=" + Instant.now());
+    @Test(groups = "regression")
+    public void entitlementSelectionCanBeCleared() {
+        var lab = new AutomationLabPage(driver, wait);
+        lab.selectEntitlements("CUSTOMER_READ", "AUDIT_VIEW");
+        assertEquals(lab.selectedEntitlements(), 2);
+        lab.selectEntitlements();
+        assertEquals(lab.selectedEntitlements(), 0);
+    }
 
-        try {
-            var lab = new AutomationLabPage(driver, wait);
-
-            lab.setRisk("HIGH");
-            assertEquals(lab.risk(), "HIGH");
-
-            lab.selectEntitlements("CUSTOMER_READ", "AUDIT_VIEW");
-            assertEquals(lab.selectedEntitlements(), 2);
-
-            lab.chooseChecker();
-            assertTrue(lab.isCheckerSelected());
-
-            lab.showWarning();
-            assertTrue(lab.alertText().contains("checker approval"));
-        } finally {
-            System.out.println("END " + execution + " at=" + Instant.now());
-        }
+    @Test(groups = "regression")
+    public void checkerSelectionShowsApprovalWarning() {
+        var lab = new AutomationLabPage(driver, wait);
+        lab.chooseChecker();
+        assertTrue(lab.isCheckerSelected());
+        lab.showWarning();
+        assertTrue(lab.alertText().contains("checker approval"));
     }
 }

@@ -61,3 +61,42 @@ withCredentials([usernamePassword(credentialsId: 'bankverse-qa-admin', usernameV
 ```
 
 Never run write-capable banking tests against production, and never place credentials in the Jenkinsfile, source, or console output.
+
+## Regression hardening and readiness gate
+
+The regression suite contains six focused scenarios across two classes: risk selection,
+multiselect clearing, checker approval warning, iframe verification, popup confirmation,
+and error-dialog acknowledgement. Each method receives a fresh browser. Class-level
+parallelism keeps a class instance on one worker; method-level parallelism is not supported
+by the instance-field driver lifecycle.
+
+Run from `automation-selenium` with Java, Maven and a matching browser/driver on PATH:
+
+```bash
+mvn -B -ntp clean test -Pregression -Dui.threads=1
+mvn -B -ntp clean test -Pregression -Dui.threads=2
+java ../ci/jenkins/VerifyUiResults.java target 6
+```
+
+Use identical source, browser and machine for timing comparisons. Keep the reports from
+each run because `clean` removes previous output. Repeat and alternate one/two-thread
+runs; compare medians and report setup/compilation/cache effects. A small suite does not
+establish production-scale throughput.
+
+`target/browser-sessions.tsv` records OPEN/CLOSED, class/method, worker ID, session ID and
+UTC timestamp. The gate requires at least six unique passing test methods, no failed or
+skipped TestNG configuration methods, one unique browser session per test, and matching
+cleanup on the owning worker. A successful quit call is recorded as CLOSED; this does not
+independently prove the absence of every orphan operating-system process.
+
+Failure evidence remains in `target/artifacts/<class>-<method>-<UUID>/`, with `failure.png`,
+`url.txt` and `execution.txt`. Screenshot errors are surfaced instead of silently ignored.
+Controlled failure exercises belong in an isolated copy or Replay, and must be restored;
+never commit intentionally failing expectations to the release branch.
+
+`ci/jenkins/Jenkinsfile.regression` is the proposed no-socket pipeline for the current Linux
+learning environment. It adds the UI gate to existing backend test/JaCoCo/SpotBugs gates
+and archives lifecycle evidence. It requires the committed hardening changes on GitHub
+before the Jenkins job is switched to it. The existing root Docker-agent pipeline is separate.
+The gate provides automated readiness evidence; it is not deployment approval and does
+not replace security, business acceptance, performance or cross-browser validation.

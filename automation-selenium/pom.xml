@@ -3,14 +3,14 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.bank.qa</groupId><artifactId>bankverse-selenium-ui</artifactId><version>1.0.0-SNAPSHOT</version>
   <name>BankVerse Selenium UI Automation</name>
-  <properties><maven.compiler.release>17</maven.compiler.release><project.build.sourceEncoding>UTF-8</project.build.sourceEncoding><selenium.version>4.27.0</selenium.version><testng.version>7.10.2</testng.version><groups>smoke</groups><headless>true</headless><browser>chrome</browser></properties>
+  <properties><maven.compiler.release>17</maven.compiler.release><project.build.sourceEncoding>UTF-8</project.build.sourceEncoding><selenium.version>4.27.0</selenium.version><testng.version>7.10.2</testng.version><groups>smoke</groups><ui.threads>2</ui.threads><headless>true</headless><browser>chrome</browser></properties>
   <dependencies>
     <dependency><groupId>org.seleniumhq.selenium</groupId><artifactId>selenium-java</artifactId><version>${selenium.version}</version><scope>test</scope></dependency>
     <dependency><groupId>org.testng</groupId><artifactId>testng</artifactId><version>${testng.version}</version><scope>test</scope></dependency>
   </dependencies>
   <build><plugins>
     <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-compiler-plugin</artifactId><version>3.13.0</version></plugin>
-    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><version>3.5.2</version><configuration><groups>${groups}</groups><parallel>classes</parallel><threadCount>2</threadCount><systemPropertyVariables><browser>${browser}</browser><headless>${headless}</headless></systemPropertyVariables></configuration></plugin>
+    <plugin><groupId>org.apache.maven.plugins</groupId><artifactId>maven-surefire-plugin</artifactId><version>3.5.2</version><configuration><groups>${groups}</groups><parallel>classes</parallel><threadCount>${ui.threads}</threadCount><systemPropertyVariables><browser>${browser}</browser><headless>${headless}</headless></systemPropertyVariables></configuration></plugin>
   </plugins></build>
   <profiles><profile><id>smoke</id><properties><groups>smoke</groups></properties></profile><profile><id>regression</id><properties><groups>smoke,regression</groups></properties></profile></profiles>
 </project>
