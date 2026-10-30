@@ -40,14 +40,25 @@ jobs:
   dependency-security:
     name: OWASP dependency vulnerability scan
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    # The first NVD database build is large. Later runs restore the cached data
+    # and apply only incremental CVE updates.
+    timeout-minutes: 90
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-java@v5
         with:
           distribution: temurin
           java-version: '17'
-          cache: maven
+      - name: Create OWASP cache key
+        id: owasp-cache-key
+        run: echo "date=$(date -u +'%Y%m%d')" >> "$GITHUB_OUTPUT"
+      - name: Restore OWASP vulnerability data
+        uses: actions/cache/restore@v5
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-owasp-maven-${{ steps.owasp-cache-key.outputs.date }}-${{ hashFiles('pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-owasp-maven-
       - name: Verify NVD API key is configured
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
@@ -60,6 +71,12 @@ jobs:
         env:
           NVD_API_KEY: ${{ secrets.NVD_API_KEY }}
         run: mvn --batch-mode verify -Psecurity -DskipTests
+      - name: Save OWASP vulnerability data
+        if: success()
+        uses: actions/cache/save@v5
+        with:
+          path: ~/.m2/repository
+          key: ${{ runner.os }}-owasp-maven-${{ steps.owasp-cache-key.outputs.date }}-${{ hashFiles('pom.xml') }}
       - name: Publish OWASP reports
         if: always()
         uses: actions/upload-artifact@v4
