@@ -1,0 +1,24 @@
+# Official Jenkins agent, pinned to the digest verified during setup.
+FROM jenkins/inbound-agent:jdk21@sha256:5069347cd3e72e5924e54c04fceb67209b41c8d0a3ab1c2b3f740e5fb2fab92a
+USER root
+ARG MAVEN_VERSION=3.9.14
+ARG MAVEN_SHA512=d50af8ab5e6005b46a07f0ce9d3719e67cfdf898da988a84871304cd59fb1af0fef2f99dea709e6e66f21f732f905979b5c2dce6b6860406f60a70e84d9cf0b8
+ARG CHROMIUM_VERSION=156.0.8078.73-1~deb13u1
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ca-certificates curl git \
+       chromium=${CHROMIUM_VERSION} chromium-driver=${CHROMIUM_VERSION} \
+    && rm -rf /var/lib/apt/lists/*
+RUN curl -fsSLo /tmp/maven.tar.gz https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz \
+    && echo "${MAVEN_SHA512}  /tmp/maven.tar.gz" | sha512sum -c - \
+    && tar -xzf /tmp/maven.tar.gz -C /opt \
+    && ln -s /opt/apache-maven-${MAVEN_VERSION} /opt/maven \
+    && rm /tmp/maven.tar.gz
+ENV MAVEN_HOME=/opt/maven
+ENV PATH=/opt/maven/bin:${PATH}
+ENV CHROME_BIN=/usr/bin/chromium
+ENV SE_AVOID_STATS=true
+RUN (java -version 2>&1; mvn -version; git --version; chromium --version; chromedriver --version) > /opt/ci-toolchain.txt
+RUN mkdir -p /home/jenkins/.m2 && chown jenkins:jenkins /home/jenkins/.m2
+USER jenkins
+WORKDIR /home/jenkins/agent
+

@@ -1,0 +1,115 @@
+pipeline {
+    agent { label 'bankverse-ui' }
+    // Maven and browsers are installed in the dedicated agent image.
+    triggers { pollSCM('H/5 * * * *') }
+    parameters {
+        booleanParam(name: 'EMAIL_NOTIFICATIONS', defaultValue: params.EMAIL_NOTIFICATIONS == true, description: 'Enable after SMTP and a test email are verified.')
+        string(name: 'ALERT_RECIPIENTS', defaultValue: params.ALERT_RECIPIENTS ?: '', description: 'Email recipient(s). Set in Jenkins; do not store private addresses in Git.')
+    }
+    options {
+        skipDefaultCheckout(true)
+        disableConcurrentBuilds()
+        timeout(time: 30, unit: 'MINUTES')
+        buildDiscarder(logRotator(numToKeepStr: '20'))
+    }
+    stages {
+        stage('Checkout BankVerse') {
+            steps {
+                script {
+                    env.BACKEND_QUALITY_PASSED = 'false'
+                    env.UI_GATE_PASSED = 'false'
+                }
+                deleteDir()
+                checkout scm
+                script {
+                    env.BANKVERSE_COMMIT = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
+                    currentBuild.description = "Commit ${env.BANKVERSE_COMMIT.take(12)}"
+                }
+            }
+        }
+        stage('Verify Toolchain') {
+            steps {
+                sh 'java -version && git --version && mvn -version && chromium --version && chromedriver --version'
+            }
+        }
+        stage('Backend Tests and Quality Gates') {
+            steps {
+                sh 'mvn -B -ntp clean verify -Pquality'
+                script { env.BACKEND_QUALITY_PASSED = 'true' }
+            }
+            post {
+                always {
+                    junit testResults: 'target/surefire-reports/TEST-*.xml'
+                    archiveArtifacts artifacts: 'target/surefire-reports/**,target/site/jacoco/**,target/jacoco.exec,target/spotbugs*.xml', allowEmptyArchive: true
+                }
+            }
+        }
+        stage('Selenium Parallel Regression and Readiness Gate') {
+            steps {
+                dir('automation-selenium') {
+                    sh 'mvn -B -ntp clean test -Pregression -Dui.threads=2 -Dheadless=true -Dbrowser=chrome -Dwebdriver.chrome.driver=/usr/bin/chromedriver'
+                    sh 'java ../ci/jenkins/VerifyUiResults.java target 6'
+                    script { env.UI_GATE_PASSED = 'true' }
+                }
+            }
+            post {
+                always {
+                    junit testResults: 'automation-selenium/target/surefire-reports/TEST-*.xml'
+                    archiveArtifacts artifacts: 'automation-selenium/target/surefire-reports/**,automation-selenium/target/artifacts/**,automation-selenium/target/application.log,automation-selenium/target/browser-sessions.tsv,automation-selenium/target/ui-readiness.txt', allowEmptyArchive: true
+                }
+            }
+        }
+    }
+    post {
+        always {
+            script {
+                if (fileExists('ci/jenkins/GenerateCiDashboard.java')) {
+                    withEnv(["CI_BUILD_RESULT=${currentBuild.currentResult}"]) {
+                        sh 'java ci/jenkins/GenerateCiDashboard.java .'
+                    }
+                    archiveArtifacts artifacts: 'ci-dashboard/**', allowEmptyArchive: false
+                    echo "CI dashboard: ${env.BUILD_URL}artifact/ci-dashboard/index.html"
+                } else {
+                    echo 'Dashboard unavailable: source checkout did not provide the generator.'
+                }
+            }
+        }
+        cleanup {
+            script {
+                def result = currentBuild.currentResult
+                def previous = currentBuild.previousBuild?.result
+                def recovery = result == 'SUCCESS' && (previous in ['FAILURE', 'UNSTABLE'])
+                def notify = result in ['FAILURE', 'UNSTABLE'] || recovery
+                if (notify && params.EMAIL_NOTIFICATIONS && params.ALERT_RECIPIENTS?.trim()) {
+                    def label = recovery ? 'RECOVERED' : result
+                    try {
+                        emailext(
+                            to: params.ALERT_RECIPIENTS.trim(),
+                            subject: "[BankVerse CI ${label}] ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                            mimeType: 'text/plain',
+                            attachLog: false,
+                            body: """Build: ${env.JOB_NAME} #${env.BUILD_NUMBER}
+Result: ${result}
+Commit: ${env.BANKVERSE_COMMIT ?: 'checkout unavailable'}
+Build: ${env.BUILD_URL}
+Console: ${env.BUILD_URL}console
+Dashboard (if generated): ${env.BUILD_URL}artifact/ci-dashboard/index.html
+Artifacts: ${env.BUILD_URL}artifact/
+
+Investigate the first failing stage. Logs and screenshots remain in Jenkins.
+Links using localhost work on the Jenkins host computer.
+"""
+                        )
+                        writeFile file: 'notification-status.txt', text: "SUBMITTED ${label} via Jenkins Email Extension; recipient delivery requires verification.\n"
+                    } catch (Exception error) {
+                        echo "ALERT_DELIVERY_FAILED: ${error.class.simpleName}. Inspect Jenkins mail configuration."
+                        writeFile file: 'notification-status.txt', text: "DELIVERY_FAILED ${label}; check SMTP configuration.\n"
+                    }
+                } else {
+                    writeFile file: 'notification-status.txt', text: notify ? 'NOT_CONFIGURED: failure/recovery alert needs enabled email and recipients.\n' : 'NOT_REQUIRED: no failure/recovery transition.\n'
+                }
+                archiveArtifacts artifacts: 'notification-status.txt', allowEmptyArchive: false
+            }
+        }
+    }
+}
