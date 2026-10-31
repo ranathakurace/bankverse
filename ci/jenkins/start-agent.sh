@@ -14,13 +14,15 @@ if [[ ! -s "$BANKVERSE_AGENT_SECRET_FILE" ]]; then
     unset agent_secret
 fi
 chmod 600 "$BANKVERSE_AGENT_SECRET_FILE"
+# sudo strips exported variables; pass the non-secret file path through Compose's env file.
+(umask 077; printf 'BANKVERSE_AGENT_SECRET_FILE="%s"\n' "$BANKVERSE_AGENT_SECRET_FILE" > "$config_dir/agent.env")
 if ! "${docker_cmd[@]}" network inspect bankverse-ci >/dev/null 2>&1; then
     "${docker_cmd[@]}" network create bankverse-ci
 fi
 if ! "${docker_cmd[@]}" network inspect bankverse-ci --format '{{range .Containers}}{{.Name}}{{println}}{{end}}' | grep -Fxq jenkins; then
     "${docker_cmd[@]}" network connect bankverse-ci jenkins
 fi
-"${docker_cmd[@]}" compose -f "$script_dir/compose.agent.yaml" build
-"${docker_cmd[@]}" compose -f "$script_dir/compose.agent.yaml" up -d
-"${docker_cmd[@]}" compose -f "$script_dir/compose.agent.yaml" ps
+"${docker_cmd[@]}" compose --env-file "$config_dir/agent.env" -f "$script_dir/compose.agent.yaml" build
+"${docker_cmd[@]}" compose --env-file "$config_dir/agent.env" -f "$script_dir/compose.agent.yaml" up -d
+"${docker_cmd[@]}" compose --env-file "$config_dir/agent.env" -f "$script_dir/compose.agent.yaml" ps
 printf '\nConfirm bankverse-ui-agent is ONLINE in Jenkins before using Jenkinsfile.agent.\n'
