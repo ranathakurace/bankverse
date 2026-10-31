@@ -10,10 +10,12 @@ pipeline {
     stages {
         stage('Checkout BankVerse') {
             steps {
-                checkout scmGit(
-                    branches: [[name: '*/feature/BV-003A-customer-activation']],
-                    userRemoteConfigs: [[url: 'https://github.com/ranathakurace/bankverse.git']]
-                )
+                script {
+                    env.BACKEND_QUALITY_PASSED = 'false'
+                    env.UI_GATE_PASSED = 'false'
+                }
+                deleteDir()
+                checkout scm
                 script {
                     env.BANKVERSE_COMMIT = sh(script: 'git rev-parse HEAD', returnStdout: true).trim()
                     currentBuild.description = "Commit ${env.BANKVERSE_COMMIT.take(12)}"
@@ -26,7 +28,10 @@ pipeline {
             }
         }
         stage('Backend Tests and Quality Gates') {
-            steps { sh 'mvn -B -ntp clean verify -Pquality' }
+            steps {
+                sh 'mvn -B -ntp clean verify -Pquality'
+                script { env.BACKEND_QUALITY_PASSED = 'true' }
+            }
             post {
                 always {
                     junit testResults: 'target/surefire-reports/TEST-*.xml'
@@ -39,12 +44,28 @@ pipeline {
                 dir('automation-selenium') {
                     sh 'mvn -B -ntp clean test -Pregression -Dui.threads=2 -Dheadless=true -Dbrowser=chrome -Dwebdriver.chrome.driver=/usr/bin/chromedriver'
                     sh 'java ../ci/jenkins/VerifyUiResults.java target 6'
+                    script { env.UI_GATE_PASSED = 'true' }
                 }
             }
             post {
                 always {
                     junit testResults: 'automation-selenium/target/surefire-reports/TEST-*.xml'
                     archiveArtifacts artifacts: 'automation-selenium/target/surefire-reports/**,automation-selenium/target/artifacts/**,automation-selenium/target/application.log,automation-selenium/target/browser-sessions.tsv,automation-selenium/target/ui-readiness.txt', allowEmptyArchive: true
+                }
+            }
+        }
+    }
+    post {
+        always {
+            script {
+                if (fileExists('ci/jenkins/GenerateCiDashboard.java')) {
+                    withEnv(["CI_BUILD_RESULT=${currentBuild.currentResult}"]) {
+                        sh 'java ci/jenkins/GenerateCiDashboard.java .'
+                    }
+                    archiveArtifacts artifacts: 'ci-dashboard/**', allowEmptyArchive: false
+                    echo "CI dashboard: ${env.BUILD_URL}artifact/ci-dashboard/index.html"
+                } else {
+                    echo 'Dashboard unavailable: source checkout did not provide the generator.'
                 }
             }
         }
