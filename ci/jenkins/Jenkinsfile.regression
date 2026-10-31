@@ -1,6 +1,11 @@
 pipeline {
     agent any
     tools { maven 'Maven-3.9' }
+    triggers { pollSCM('H/5 * * * *') }
+    parameters {
+        booleanParam(name: 'EMAIL_NOTIFICATIONS', defaultValue: params.EMAIL_NOTIFICATIONS == true, description: 'Enable after SMTP and a test email are verified.')
+        string(name: 'ALERT_RECIPIENTS', defaultValue: params.ALERT_RECIPIENTS ?: '', description: 'Email recipient(s). Set in Jenkins; do not store private addresses in Git.')
+    }
     options {
         skipDefaultCheckout(true)
         disableConcurrentBuilds()
@@ -67,6 +72,43 @@ pipeline {
                 } else {
                     echo 'Dashboard unavailable: source checkout did not provide the generator.'
                 }
+            }
+        }
+        cleanup {
+            script {
+                def result = currentBuild.currentResult
+                def previous = currentBuild.previousBuild?.result
+                def recovery = result == 'SUCCESS' && (previous in ['FAILURE', 'UNSTABLE'])
+                def notify = result in ['FAILURE', 'UNSTABLE'] || recovery
+                if (notify && params.EMAIL_NOTIFICATIONS && params.ALERT_RECIPIENTS?.trim()) {
+                    def label = recovery ? 'RECOVERED' : result
+                    try {
+                        emailext(
+                            to: params.ALERT_RECIPIENTS.trim(),
+                            subject: "[BankVerse CI ${label}] ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                            mimeType: 'text/plain',
+                            attachLog: false,
+                            body: """Build: ${env.JOB_NAME} #${env.BUILD_NUMBER}
+Result: ${result}
+Commit: ${env.BANKVERSE_COMMIT ?: 'checkout unavailable'}
+Build: ${env.BUILD_URL}
+Console: ${env.BUILD_URL}console
+Dashboard (if generated): ${env.BUILD_URL}artifact/ci-dashboard/index.html
+Artifacts: ${env.BUILD_URL}artifact/
+
+Investigate the first failing stage. Logs and screenshots remain in Jenkins.
+Links using localhost work on the Jenkins host computer.
+"""
+                        )
+                        writeFile file: 'notification-status.txt', text: "SUBMITTED ${label} via Jenkins Email Extension; recipient delivery requires verification.\n"
+                    } catch (Exception error) {
+                        echo "ALERT_DELIVERY_FAILED: ${error.class.simpleName}. Inspect Jenkins mail configuration."
+                        writeFile file: 'notification-status.txt', text: "DELIVERY_FAILED ${label}; check SMTP configuration.\n"
+                    }
+                } else {
+                    writeFile file: 'notification-status.txt', text: notify ? 'NOT_CONFIGURED: failure/recovery alert needs enabled email and recipients.\n' : 'NOT_REQUIRED: no failure/recovery transition.\n'
+                }
+                archiveArtifacts artifacts: 'notification-status.txt', allowEmptyArchive: false
             }
         }
     }

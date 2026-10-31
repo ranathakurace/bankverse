@@ -138,3 +138,64 @@ To generate a local preview from archived evidence, place the archived report di
 and matching pom.xml under a snapshot root, copy the generator/CSS under ci/jenkins there,
 and run `java ci/jenkins/GenerateCiDashboard.java .`. Without build-local result and gate
 flags it intentionally reports INCOMPLETE rather than assuming success.
+
+## Automatic execution, email and dedicated agent
+
+These changes are prepared in the separate `bankverse-ci-setup` worktree on branch
+`ci/jenkins-operations`, preserving the developer's current working branch.
+
+1. Change detection: Jenkins Poll SCM uses `H/5 * * * *`. This is a change check every five
+   minutes, not an unconditional scheduled build. A completed cycle with `No changes`
+   verifies polling without inventing a source change. After the first real main-branch
+   update, verify a build with cause `Started by an SCM change`. Jenkins, Docker and WSL
+   must be running. A public webhook endpoint is not required.
+
+2. Email: configure Manage Jenkins > System > Extended E-mail Notification with Gmail
+   SMTP `smtp.gmail.com`, port `587`, STARTTLS, and SMTP authentication. Enter the sender
+   account and its app password directly in Jenkins credentials, never Git or chat.
+   Gmail app passwords require eligible 2-Step Verification configuration. Verify a test
+   email first. The intended recipient is configured in Jenkins, not source code.
+   Enable EMAIL_NOTIFICATIONS and set ALERT_RECIPIENTS in Build with Parameters after
+   the new Jenkinsfile registers the parameters. The Jenkinsfile preserves the last explicitly supplied values as the next defaults,
+   so subsequent unattended polling builds use that selection. The first run registers
+   parameters with email disabled; then run Build with Parameters once with the verified
+   recipient and EMAIL_NOTIFICATIONS enabled.
+   Failure/unstable and recovery messages include build, console, dashboard and artifact
+   links. No logs are emailed. `notification-status.txt` distinguishes not configured,
+   not required, submitted and delivery failed; SMTP submission is not inbox delivery.
+   A mail error is visible without disguising test results. Test both a controlled failed
+   build and the next successful build; expect failure and recovery email respectively.
+   Only a deliberately failing disposable job/Replay should be used for that exercise.
+
+3. Dedicated agent: Dockerfile.agent pins the official inbound-agent base digest, Maven
+   version/checksum and matching Chromium packages. Transitive Debian packages may change
+   when rebuilding later; use the recorded built image digest for identical deployments.
+   It runs as jenkins, provides its own Maven PATH and mounts no Docker socket. One Jenkins
+   executor runs the suite, while TestNG owns the two browser workers. The controller's
+   current executor configuration is unchanged so existing jobs keep working.
+
+Create a permanent Jenkins node with these settings:
+- Name: bankverse-ui-agent
+- Remote root: /home/jenkins/agent
+- Executors: 1
+- Label: bankverse-ui
+- Usage: only jobs with matching labels
+- Launch: connect agent to controller (inbound); WebSocket transport
+
+From Ubuntu WSL, run `bash ci/jenkins/start-agent.sh` in this worktree. Paste the node's
+secret at the hidden local prompt. It is saved under the Linux user's private config
+folder with mode 0600 and mounted as a secret file. It is not a Gmail password. The script
+creates a private bankverse-ci Docker network and connects the existing controller without
+recreating it. Compose starts the agent with WebSocket on the controller's existing HTTP
+port; no agent port is exposed. The controller must retain container name `jenkins`.
+
+After the node is online, set the job Script Path to `ci/jenkins/Jenkinsfile.agent` only
+once that file is present on the job's configured SCM branch. Verify `Running on
+bankverse-ui-agent`, 72 backend and six UI passes, UI_GATE_PASS and dashboard artifacts.
+The existing Jenkinsfile.regression remains usable during migration. If the agent goes
+offline, the labelled job queues rather than falling back to the controller.
+
+Keep SMTP/app-password and agent bootstrap steps separate. Do not disable controller
+executors until every relevant job has migrated to an agent. Polling, SMTP delivery,
+agent connectivity, and a full agent-backed pipeline each need their own evidence before
+being marked complete.

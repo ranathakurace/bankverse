@@ -1,0 +1,38 @@
+services:
+  ui-agent:
+    image: bankverse-ui-agent:2026-10-31
+    build:
+      context: .
+      dockerfile: Dockerfile.agent
+    container_name: bankverse-ui-agent
+    restart: unless-stopped
+    init: true
+    shm_size: 2gb
+    command:
+      - -url
+      - http://jenkins:8080/
+      - -webSocket
+      - -secret
+      - '@/run/secrets/agent_secret'
+      - -name
+      - bankverse-ui-agent
+      - -workDir
+      - /home/jenkins/agent
+    secrets:
+      - agent_secret
+    volumes:
+      - agent-work:/home/jenkins/agent
+      - maven-cache:/home/jenkins/.m2
+    networks:
+      - ci
+secrets:
+  agent_secret:
+    file: ${BANKVERSE_AGENT_SECRET_FILE:?Set BANKVERSE_AGENT_SECRET_FILE to a protected Linux file}
+volumes:
+  agent-work:
+  maven-cache:
+networks:
+  ci:
+    name: bankverse-ci
+    external: true
+
