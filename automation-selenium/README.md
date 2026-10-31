@@ -100,3 +100,41 @@ and archives lifecycle evidence. It requires the committed hardening changes on 
 before the Jenkins job is switched to it. The existing root Docker-agent pipeline is separate.
 The gate provides automated readiness evidence; it is not deployment approval and does
 not replace security, business acceptance, performance or cross-browser validation.
+
+## CI execution dashboard
+
+`ci/jenkins/GenerateCiDashboard.java` generates a build-specific, script-free HTML report
+at `ci-dashboard/index.html`. It reads backend/UI JUnit XML, JaCoCo XML, SpotBugs XML,
+browser lifecycle TSV, readiness evidence and PNG screenshots. No extra runtime or
+Jenkins plugin is required beyond the existing JDK. External CSS is archived alongside
+the HTML so the report works with Jenkins's default content-security policy.
+
+The updated `ci/jenkins/Jenkinsfile.regression` generates and archives it in pipeline
+`post { always { ... } }`, including failed test builds. The checkout starts with
+`deleteDir()` to prevent prior workspace reports from appearing in a new build. Successful
+backend and UI gate execution is recorded in build-local environment flags. The dashboard
+shows unavailable evidence instead of treating missing reports as zero failures. If source
+checkout fails before the generator is available, Jenkins logs why no dashboard was produced.
+
+After adopting this pipeline, open:
+
+```text
+<build URL>/artifact/ci-dashboard/index.html
+```
+
+`summary.txt` contains a plain-text summary. The dashboard links to archived backend/UI
+reports, coverage, SpotBugs findings, application logs, lifecycle records and failure
+screenshots from the same build. A passing build normally has no screenshots. The
+AUTOMATED GATES PASSED banner requires a successful Jenkins result, confirmed gate
+execution, passing tests without skips, instruction coverage above the configured minimum,
+zero configured SpotBugs findings/errors, and complete browser lifecycle evidence.
+It does not grant deployment approval or confirm security/business acceptance.
+
+Parallel metrics show worker count, distinct opened/closed sessions, peak concurrent
+sessions and measured browser-session span. These are not the Maven duration and do not
+establish a speedup from one build; use repeated sequential/parallel trials for comparison.
+
+To generate a local preview from archived evidence, place the archived report directories
+and matching pom.xml under a snapshot root, copy the generator/CSS under ci/jenkins there,
+and run `java ci/jenkins/GenerateCiDashboard.java .`. Without build-local result and gate
+flags it intentionally reports INCOMPLETE rather than assuming success.
